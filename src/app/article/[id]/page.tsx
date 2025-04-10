@@ -41,8 +41,6 @@ export default function ArticleView({
   const wordOffsetsRef = useRef<number[]>([]);
   const [voicesLoaded, setVoicesLoaded] = useState(false);
 
-
-
   const cleanWord = (rawWord: string): string => {
     if (!languageSettings) return "";
 
@@ -62,6 +60,7 @@ export default function ArticleView({
 
     return isValid ? trimmed.toLowerCase() : "";
   };
+  
 
   useEffect(() => {
     const loadBaseData = async () => {
@@ -149,10 +148,10 @@ export default function ArticleView({
 
   useEffect(() => {
     if (!article) return;
-  
+
     const text = article.original;
     const tokens = splitText(text);
-    
+
     // Calcular offsets sincronamente
     const offsets: number[] = [];
     let currentPos = 0;
@@ -162,18 +161,19 @@ export default function ArticleView({
     });
     setWordOffsets(offsets);
     wordOffsetsRef.current = offsets; // Atualiza ref imediatamente
-  
+
     const u = new SpeechSynthesisUtterance(text);
-    u.lang = article.language.includes("-") 
-      ? article.language 
-      : `${article.language}-${article.language.toUpperCase()}`;    
-  
+    u.lang = article.language.includes("-")
+      ? article.language
+      : `${article.language}-${article.language.toUpperCase()}`;
+
     u.onboundary = (event) => {
-      if (event.name === 'word') {
+      if (event.name === "word") {
         const charIndex = event.charIndex;
         const offsets = wordOffsetsRef.current; // Usa a ref atualizada
-        
-        let low = 0, high = offsets.length - 1;
+
+        let low = 0,
+          high = offsets.length - 1;
         while (low <= high) {
           const mid = Math.floor((low + high) / 2);
           if (offsets[mid] <= charIndex) {
@@ -183,38 +183,38 @@ export default function ArticleView({
           }
         }
         const wordIndex = high;
-  
+
         if (wordIndex >= 0 && wordIndex < tokens.length) {
           setCurrentWordIndex(wordIndex);
-          
+
           const page = Math.floor(wordIndex / pageSize);
           if (page !== currentPage) {
             setCurrentPage(page);
             // Forçar rerenderização imediata da nova página
             containerRef.current?.scrollTo({ top: 0, behavior: "auto" });
           }
-  
+
           // Aguardar atualização do DOM
           setTimeout(() => {
-            const elements = containerRef.current?.getElementsByTagName('span');
-            if (elements?.[wordIndex - (page * pageSize)]) {
-              elements[wordIndex - (page * pageSize)].scrollIntoView({
-                block: 'center',
-                behavior: 'smooth'
+            const elements = containerRef.current?.getElementsByTagName("span");
+            if (elements?.[wordIndex - page * pageSize]) {
+              elements[wordIndex - page * pageSize].scrollIntoView({
+                block: "center",
+                behavior: "smooth",
               });
             }
           }, 0);
         }
       }
     };
-  
+
     setUtterance(u);
   }, [article, currentPage, pageSize]);
 
   useEffect(() => {
     wordOffsetsRef.current = wordOffsets;
   }, [wordOffsets]);
-  
+
   useEffect(() => {
     setCurrentWordIndex(-1);
   }, [currentPage]);
@@ -242,33 +242,34 @@ export default function ArticleView({
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const voices = window.speechSynthesis.getVoices();
+      const updateVoices = () => {
+        const voices = window.speechSynthesis.getVoices();
+        console.log('Available voices:', voices);
+        setVoicesLoaded(true);
+      };
   
-      if (voices.length === 0) {
-        // Algumas vezes é necessário aguardar as vozes carregarem
-        window.speechSynthesis.onvoiceschanged = () => {
-          const loadedVoices = window.speechSynthesis.getVoices();
-          console.log("Available voices:", loadedVoices);
-        };
-      } else {
-        console.log("Available voices:", voices);
-      }
+      window.speechSynthesis.onvoiceschanged = updateVoices;
+      updateVoices(); // Carrega imediatamente se já disponível
+  
+      return () => {
+        window.speechSynthesis.onvoiceschanged = null;
+      };
     }
   }, []);
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       speechSynthesis.current = window.speechSynthesis;
       const loadVoices = () => {
         setVoicesLoaded(true);
       };
-      
+
       speechSynthesis.current.onvoiceschanged = loadVoices;
       return () => {
         speechSynthesis.current!.onvoiceschanged = null;
       };
     }
-  }, []);
+  }, []);  
 
   const splitText = (text: string) => {
     if (!languageSettings) return [];
@@ -414,6 +415,66 @@ export default function ArticleView({
     }
   };
 
+  const playPronunciation = () => {
+    if (!selectedWord || !article || typeof window === "undefined") return;
+  
+    const synth = window.speechSynthesis;
+    if (!synth) {
+      alert("Text-to-speech não suportado!");
+      return;
+    }
+  
+    // Configuração inteligente de idioma
+    const langMap: { [key: string]: string } = {
+      'en': 'en-US',
+      'pt': 'pt-BR',
+      'es': 'es-ES',
+      'fr': 'fr-FR'
+    };
+  
+    const targetLang = langMap[article.language.split('-')[0]] || article.language;
+  
+    // Obter vozes disponíveis
+    const voices = synth.getVoices();
+    
+    // Priorizar vozes em ordem:
+    const preferredVoices = voices.filter(voice => 
+      voice.lang === targetLang || 
+      voice.lang.startsWith(targetLang.split('-')[0])
+    ).sort((a, b) => {
+      // Ordenar por qualidade
+      if (a.name.includes("Google")) return -1;
+      if (a.name.includes("Natural")) return -1;
+      if (a.name.includes("WaveNet")) return -1;
+      return 1;
+    });
+  
+    if (preferredVoices.length === 0) {
+      console.info(`Voice not available for ${targetLang}`);
+      //return;
+    }
+  
+    const utterance = new SpeechSynthesisUtterance(selectedWord.name);
+    utterance.voice = preferredVoices[0];
+    utterance.lang = targetLang;
+    utterance.rate = 0.9;
+    utterance.pitch = 1.2;
+  
+    // Configurações específicas por idioma
+    switch(targetLang.split('-')[0]) {
+      case 'en':
+        utterance.rate = 1.1;
+        utterance.pitch = 1.0;
+        break;
+      case 'pt':
+        utterance.rate = 0.9;
+        break;
+    }
+  
+    synth.cancel();
+    synth.speak(utterance);
+  };
+
   return (
     <div className="min-h-screen bg-white">
       <div className="max-w-7xl mx-auto p-6">
@@ -436,27 +497,29 @@ export default function ArticleView({
             >
               {showMarkAll === 0 ? "Mark all known?" : "Confirm"}
             </button>
-            <div className="flex items-center gap-4">
-              <button
-                onClick={togglePlayback}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-              >
-                {isPlaying ? (
-                  <>
-                    <PauseIcon className="w-5 h-5" />
-                    Pause
-                  </>
-                ) : (
-                  <>
-                    <PlayIcon className="w-5 h-5" />
-                    Play
-                  </>
-                )}
-              </button>
-              <span className="text-sm text-gray-600">
-                Idioma: {article.language.toUpperCase()}
-              </span>
-            </div>
+            {voicesLoaded && (
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={togglePlayback}
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                >
+                  {isPlaying ? (
+                    <>
+                      <PauseIcon className="w-5 h-5" />
+                      Pause
+                    </>
+                  ) : (
+                    <>
+                      <PlayIcon className="w-5 h-5" />
+                      Play
+                    </>
+                  )}
+                </button>
+                {/*<span className="text-sm text-gray-600">
+                Lang: {article.language.toUpperCase()}
+              </span>*/}
+              </div>
+            )}
           </div>
         </div>
 
@@ -498,7 +561,9 @@ export default function ArticleView({
                           ? "cursor-pointer hover:underline hover:bg-gray-100"
                           : ""
                       } ${
-                        isCurrentWord && isWord ? "bg-yellow-200 scale-105 shadow-md" : ""
+                        isCurrentWord && isWord
+                          ? "bg-yellow-200 scale-105 shadow-md"
+                          : ""
                       } ${
                         comfort === 5
                           ? "bg-green-100"
@@ -514,7 +579,9 @@ export default function ArticleView({
                           ? "border-2 border-blue-500"
                           : ""
                       }`}
-                      //style={{ whiteSpace: "pre-wrap"}}
+                      style={{
+                        transition: "background-color 50ms ease-in-out",
+                      }}
                       onClick={
                         isWord ? () => handleWordClick(token) : undefined
                       }
@@ -553,7 +620,16 @@ export default function ArticleView({
             {selectedWord ? (
               <>
                 <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-bold">{selectedWord.name}</h3>
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-lg font-bold p-1">{selectedWord.name}</h3>
+                    <button
+                      onClick={playPronunciation}
+                      className="p-1 hover:bg-gray-100 rounded"
+                      title="Listen"
+                    >
+                      <SpeakerWaveIcon className="w-5 h-5 text-blue-500" />
+                    </button>
+                  </div>
                   <button
                     onClick={() => setSelectedWord(null)}
                     className="text-gray-500 hover:text-gray-700"
@@ -743,6 +819,23 @@ const PauseIcon = ({ className }: { className?: string }) => (
       strokeLinecap="round"
       strokeLinejoin="round"
       d="M15.75 5.25v13.5m-7.5-13.5v13.5"
+    />
+  </svg>
+);
+
+const SpeakerWaveIcon = ({ className }: { className?: string }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+    strokeWidth={1.5}
+    stroke="currentColor"
+    className={className}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z"
     />
   </svg>
 );
