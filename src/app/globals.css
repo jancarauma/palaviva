@@ -41,3 +41,18 @@ body {
   @apply text-blue-600 dark:text-blue-400 border-blue-600 dark:border-blue-400;
 }
 
+.transition-all {
+  transition-property: all;
+}
+
+.duration-300 {
+  transition-duration: 300ms;
+}
+
+.scale-105 {
+  transform: scale(1.05);
+}
+
+.shadow-md {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}

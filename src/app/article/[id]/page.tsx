@@ -6,7 +6,11 @@ import { use } from "react";
 import { useRouter } from "next/navigation";
 import { db, IArticle, IWord } from "@/lib/db/schema";
 
-export default function ArticleView({ params }: { params: Usable<{ id: string; }> }) {
+export default function ArticleView({
+  params,
+}: {
+  params: Usable<{ id: string }>;
+}) {
   const router = useRouter();
   const [article, setArticle] = useState<IArticle | null>(null);
   const [words, setWords] = useState<IWord[]>([]);
@@ -20,29 +24,41 @@ export default function ArticleView({ params }: { params: Usable<{ id: string; }
     text_splitting_regex: string;
     word_regex: string;
   } | null>(null);
-  const unwrappedParams = use(params) as { id : string };
+  const unwrappedParams = use(params) as { id: string };
 
   const containerRef = useRef<HTMLDivElement>(null);
   const pageSize = 500;
 
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentWordIndex, setCurrentWordIndex] = useState(-1);
+  const [utterance, setUtterance] = useState<SpeechSynthesisUtterance | null>(
+    null
+  );
+  const speechSynthesis = useRef<SpeechSynthesis>(
+    typeof window !== "undefined" ? window.speechSynthesis : null
+  );
+  const [wordOffsets, setWordOffsets] = useState<number[]>([]);
+  const wordOffsetsRef = useRef<number[]>([]);
+
+
   const cleanWord = (rawWord: string): string => {
-    if (!languageSettings) return '';
-  
+    if (!languageSettings) return "";
+
     // Passo 1: Normalização Unicode
-    const normalized = rawWord.normalize('NFD');
-    
+    const normalized = rawWord.normalize("NFD");
+
     // Passo 2: Remover símbolos apenas no início/fim
     const trimmed = normalized.replace(
-      /^[\p{P}\p{S}\p{N}]+|[\p{P}\p{S}\p{N}]+$/gu, 
-      ''
+      /^[\p{P}\p{S}\p{N}]+|[\p{P}\p{S}\p{N}]+$/gu,
+      ""
     );
-  
+
     // Passo 3: Validar estrutura interna da palavra
     const isValid = languageSettings.word_regex
-      ? new RegExp(languageSettings.word_regex, 'u').test(trimmed)
+      ? new RegExp(languageSettings.word_regex, "u").test(trimmed)
       : trimmed.length > 0;
-  
-    return isValid ? trimmed.toLowerCase() : '';
+
+    return isValid ? trimmed.toLowerCase() : "";
   };
 
   useEffect(() => {
@@ -128,6 +144,99 @@ export default function ArticleView({ params }: { params: Usable<{ id: string; }
     languageSettings?.text_splitting_regex,
     languageSettings?.word_regex,
   ]);
+
+  useEffect(() => {
+    if (!article) return;
+  
+    const text = article.original;
+    const tokens = splitText(text);
+    
+    // Calcular offsets sincronamente
+    const offsets: number[] = [];
+    let currentPos = 0;
+    tokens.forEach((token) => {
+      offsets.push(currentPos);
+      currentPos += token.length + 1;
+    });
+    setWordOffsets(offsets);
+    wordOffsetsRef.current = offsets; // Atualiza ref imediatamente
+  
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = article.language.includes("-") 
+      ? article.language 
+      : `${article.language}-${article.language.toUpperCase()}`;
+  
+    u.onboundary = (event) => {
+      if (event.name === 'word') {
+        const charIndex = event.charIndex;
+        const offsets = wordOffsetsRef.current; // Usa a ref atualizada
+        
+        let low = 0, high = offsets.length - 1;
+        while (low <= high) {
+          const mid = Math.floor((low + high) / 2);
+          if (offsets[mid] <= charIndex) {
+            low = mid + 1;
+          } else {
+            high = mid - 1;
+          }
+        }
+        const wordIndex = high;
+  
+        if (wordIndex >= 0 && wordIndex < tokens.length) {
+          setCurrentWordIndex(wordIndex);
+          
+          const page = Math.floor(wordIndex / pageSize);
+          if (page !== currentPage) {
+            setCurrentPage(page);
+            // Forçar rerenderização imediata da nova página
+            containerRef.current?.scrollTo({ top: 0, behavior: "auto" });
+          }
+  
+          // Aguardar atualização do DOM
+          setTimeout(() => {
+            const elements = containerRef.current?.getElementsByTagName('span');
+            if (elements?.[wordIndex - (page * pageSize)]) {
+              elements[wordIndex - (page * pageSize)].scrollIntoView({
+                block: 'center',
+                behavior: 'smooth'
+              });
+            }
+          }, 0);
+        }
+      }
+    };
+  
+    setUtterance(u);
+  }, [article, currentPage, pageSize]);
+
+  useEffect(() => {
+    wordOffsetsRef.current = wordOffsets;
+  }, [wordOffsets]);
+  
+  useEffect(() => {
+    setCurrentWordIndex(-1);
+  }, [currentPage]);
+
+  const togglePlayback = () => {
+    if (!utterance || !speechSynthesis.current) return;
+
+    if (isPlaying) {
+      speechSynthesis.current.pause();
+      setIsPlaying(false);
+    } else {
+      if (speechSynthesis.current.paused) {
+        speechSynthesis.current.resume();
+      } else {
+        // Reiniciar a reprodução se chegou ao fim
+        if (currentWordIndex >= wordsArray.length - 1) {
+          setCurrentWordIndex(-1);
+        }
+        speechSynthesis.current.cancel();
+        speechSynthesis.current.speak(utterance);
+      }
+      setIsPlaying(true);
+    }
+  };
 
   const splitText = (text: string) => {
     if (!languageSettings) return [];
@@ -295,6 +404,27 @@ export default function ArticleView({ params }: { params: Usable<{ id: string; }
             >
               {showMarkAll === 0 ? "Mark all known?" : "Confirm"}
             </button>
+            <div className="flex items-center gap-4">
+              <button
+                onClick={togglePlayback}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+              >
+                {isPlaying ? (
+                  <>
+                    <PauseIcon className="w-5 h-5" />
+                    Pause
+                  </>
+                ) : (
+                  <>
+                    <PlayIcon className="w-5 h-5" />
+                    Play
+                  </>
+                )}
+              </button>
+              <span className="text-sm text-gray-600">
+                Idioma: {article.language.toUpperCase()}
+              </span>
+            </div>
           </div>
         </div>
 
@@ -324,11 +454,19 @@ export default function ArticleView({ params }: { params: Usable<{ id: string; }
                     : null;
                   const comfort = wordData?.comfort || 0;
 
+                  const isWordAdd = isWord ? 0 : 2;
+                  const globalIndex = startIdx + index + isWordAdd;
+                  const isCurrentWord = globalIndex === currentWordIndex;
+
                   return (
                     <span
                       key={`${token}-${index}`}
                       className={`px-1 rounded ${
-                        isWord ? "cursor-pointer hover:underline hover:bg-gray-100" : ""
+                        isWord
+                          ? "cursor-pointer hover:underline hover:bg-gray-100"
+                          : ""
+                      } ${
+                        isCurrentWord && isWord ? "bg-yellow-200 scale-105 shadow-md" : ""
                       } ${
                         comfort === 5
                           ? "bg-green-100"
@@ -349,8 +487,9 @@ export default function ArticleView({ params }: { params: Usable<{ id: string; }
                         isWord ? () => handleWordClick(token) : undefined
                       }
                     >
-                      {" "}{token}{" "}
-                    </span> 
+                      {" "}
+                      {token}{" "}
+                    </span>
                   );
                 })}
             </div>
@@ -541,3 +680,37 @@ function getComfortLevelName(comfort: number): string {
       return "Unknown";
   }
 }
+
+const PlayIcon = ({ className }: { className?: string }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+    strokeWidth={1.5}
+    stroke="currentColor"
+    className={className}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z"
+    />
+  </svg>
+);
+
+const PauseIcon = ({ className }: { className?: string }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+    strokeWidth={1.5}
+    stroke="currentColor"
+    className={className}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M15.75 5.25v13.5m-7.5-13.5v13.5"
+    />
+  </svg>
+);
