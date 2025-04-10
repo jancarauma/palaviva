@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, Usable } from "react";
 import Link from "next/link";
 import { use } from "react";
 import { useRouter } from "next/navigation";
 import { db, IArticle, IWord } from "@/lib/db/schema";
 
-export default function ArticleView({ params }: { params: { id: string } }) {
+export default function ArticleView({ params }: { params: Usable<{ id: string; }> }) {
   const router = useRouter();
   const [article, setArticle] = useState<IArticle | null>(null);
   const [words, setWords] = useState<IWord[]>([]);
@@ -20,7 +20,7 @@ export default function ArticleView({ params }: { params: { id: string } }) {
     text_splitting_regex: string;
     word_regex: string;
   } | null>(null);
-  const unwrappedParams = use(params);
+  const unwrappedParams = use(params) as { id : string };
 
   const containerRef = useRef<HTMLDivElement>(null);
   const pageSize = 500;
