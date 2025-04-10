@@ -1,22 +1,43 @@
 // app/create/page.tsx
-'use client';
+"use client";
 
-import { useState } from 'react';
-import Link from 'next/link';
-import { db } from '@/lib/db/schema';
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { db } from "@/lib/db/schema";
 
 export default function CreatePage() {
   const [form, setForm] = useState({
-    title: '',
-    source: '',
-    content: ''
+    title: "",
+    source: "",
+    content: "",
   });
+  const [targetLang, setTargetLang] = useState("");
+
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const settings = await db.settings.get(1);
+        if (settings?.user) {
+          setTargetLang(settings.user["target-lang"]);
+        }
+      } catch (error) {
+        console.error("Error loading settings:", error);
+      }
+    };
+
+    loadSettings();
+  }, [targetLang]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!form.content.trim() || !form.title.trim()) {
-      alert('Please fill in required fields');
+      alert("Please fill in required fields");
+      return;
+    }
+
+    if (!targetLang) {
+      alert("Language settings not loaded. Please try again.");
       return;
     }
 
@@ -25,20 +46,19 @@ export default function CreatePage() {
         name: form.title,
         source: form.source,
         original: form.content,
-        word_ids: '', // Será preenchido após processamento
-        language: 'fr', // Idioma padrão
+        word_ids: "", // Será preenchido após processamento
+        language: targetLang,
         date_created: Date.now(),
         last_opened: Date.now(),
-        current_page: 0
+        current_page: 0,
       });
 
       // Limpar formulário após sucesso
-      setForm({ title: '', source: '', content: '' });
-      alert('Text created successfully!');
-      
+      setForm({ title: "", source: "", content: "" });
+      alert("Text created successfully!");
     } catch (error) {
-      console.error('Error creating article:', error);
-      alert('Error creating text');
+      console.error("Error creating article:", error);
+      alert("Error creating text");
     }
   };
 
@@ -49,7 +69,7 @@ export default function CreatePage() {
           <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-2">
             Create a New Text
           </h1>
-          <Link 
+          <Link
             href="/"
             className="text-blue-600 dark:text-blue-400 hover:underline"
           >
@@ -60,7 +80,7 @@ export default function CreatePage() {
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label 
+              <label
                 htmlFor="title"
                 className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
               >
@@ -70,7 +90,7 @@ export default function CreatePage() {
                 id="title"
                 type="text"
                 value={form.title}
-                onChange={(e) => setForm({...form, title: e.target.value})}
+                onChange={(e) => setForm({ ...form, title: e.target.value })}
                 className="w-full px-4 py-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 
                          dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 placeholder="Enter text title"
@@ -79,7 +99,7 @@ export default function CreatePage() {
             </div>
 
             <div>
-              <label 
+              <label
                 htmlFor="source"
                 className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
               >
@@ -89,7 +109,7 @@ export default function CreatePage() {
                 id="source"
                 type="text"
                 value={form.source}
-                onChange={(e) => setForm({...form, source: e.target.value})}
+                onChange={(e) => setForm({ ...form, source: e.target.value })}
                 className="w-full px-4 py-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 
                          dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 placeholder="Enter text source (optional)"
@@ -97,7 +117,7 @@ export default function CreatePage() {
             </div>
 
             <div>
-              <label 
+              <label
                 htmlFor="content"
                 className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
               >
@@ -106,7 +126,7 @@ export default function CreatePage() {
               <textarea
                 id="content"
                 value={form.content}
-                onChange={(e) => setForm({...form, content: e.target.value})}
+                onChange={(e) => setForm({ ...form, content: e.target.value })}
                 rows={12}
                 className="w-full px-4 py-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 
                          dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
