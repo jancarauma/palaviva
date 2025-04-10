@@ -39,6 +39,8 @@ export default function ArticleView({
   );
   const [wordOffsets, setWordOffsets] = useState<number[]>([]);
   const wordOffsetsRef = useRef<number[]>([]);
+  const [voicesLoaded, setVoicesLoaded] = useState(false);
+
 
 
   const cleanWord = (rawWord: string): string => {
@@ -164,7 +166,7 @@ export default function ArticleView({
     const u = new SpeechSynthesisUtterance(text);
     u.lang = article.language.includes("-") 
       ? article.language 
-      : `${article.language}-${article.language.toUpperCase()}`;
+      : `${article.language}-${article.language.toUpperCase()}`;    
   
     u.onboundary = (event) => {
       if (event.name === 'word') {
@@ -237,6 +239,36 @@ export default function ArticleView({
       setIsPlaying(true);
     }
   };
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const voices = window.speechSynthesis.getVoices();
+  
+      if (voices.length === 0) {
+        // Algumas vezes é necessário aguardar as vozes carregarem
+        window.speechSynthesis.onvoiceschanged = () => {
+          const loadedVoices = window.speechSynthesis.getVoices();
+          console.log("Available voices:", loadedVoices);
+        };
+      } else {
+        console.log("Available voices:", voices);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      speechSynthesis.current = window.speechSynthesis;
+      const loadVoices = () => {
+        setVoicesLoaded(true);
+      };
+      
+      speechSynthesis.current.onvoiceschanged = loadVoices;
+      return () => {
+        speechSynthesis.current!.onvoiceschanged = null;
+      };
+    }
+  }, []);
 
   const splitText = (text: string) => {
     if (!languageSettings) return [];
