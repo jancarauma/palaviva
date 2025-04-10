@@ -441,13 +441,14 @@ export default function ArticleView({
     const preferredVoices = voices.filter(voice => 
       voice.lang === targetLang || 
       voice.lang.startsWith(targetLang.split('-')[0])
-    ).sort((a, b) => {
-      // Ordenar por qualidade
-      if (a.name.includes("Google")) return -1;
-      if (a.name.includes("Natural")) return -1;
-      if (a.name.includes("WaveNet")) return -1;
-      return 1;
-    });
+    );
+    //.sort((a, b) => {
+    //  // Ordenar por qualidade
+    //  if (a.name.includes("Google")) return -1;
+    //  if (a.name.includes("Natural")) return -1;
+    //  if (a.name.includes("WaveNet")) return -1;
+    //  return 1;
+    //});
   
     if (preferredVoices.length === 0) {
       console.info(`Voice not available for ${targetLang}`);
