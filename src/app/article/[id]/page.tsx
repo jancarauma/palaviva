@@ -1,8 +1,11 @@
-// src/app/article/[id]/page.tsx
-
 import ArticleView from './ArticleView';
 
-export default function Page({ params }) {
-  // params.id aqui já vem corretamente tipado pelo Next.js
+export default function Page({
+  params,
+}: {
+  params: {
+    id: string;
+  };
+}) {
   return <ArticleView id={params.id} />;
 }
