@@ -1,7 +1,74 @@
 # Palaviva - Language Learning App
 
+**Palaviva** is a web application designed to facilitate language learning through reading and active engagement. 
+
+It allows users to import or load articles and any text content for study, classify vocabulary by comfort level, track learning statistics and progress over time, and leverage synchronized text-to-speech for immersive pronunciation practice.
+
 ![image](https://github.com/user-attachments/assets/147180da-8aa6-4a21-9b32-ae95b782f420)
 
-Palaviva is a simple and efficient tool for learning new languages, inspired by the concept of "Learning With Texts." It allows you to read articles while marking the familiarity of words and adding translations.
+> **Note:** This tool is still under active development and may contain bugs or incomplete features. Contributions, feedback, and suggestions are welcome to help improve the project.
 
-Ths webapp is still under development, and contributions are welcome. Use the conventional commit system when submitting changes, and feel free to explore the code, suggest improvements, or submit issues for bugs or feature requests.
+## Features
+
+- **Article and Text Import**  
+  Load articles or paste custom text for study in your target language.
+
+- **Comfort-Level Classification**  
+  Mark each word with a comfort rating to indicate your familiarity, and filter content accordingly.
+
+- **Learning Statistics**  
+  View detailed statistics on word frequency, comfort distribution, and your learning progress over time.
+
+- **Synchronized Text-to-Speech**  
+  Listen to the full text or individual words and see the current word highlighted in real time.
+
+- **Offline-First Experience**  
+  Powered by IndexedDB (Dexie.js) for fast, reliable access to your data without an internet connection.
+
+## Technology Stack
+
+- **Next.js** (App Router, Client Components)  
+- **React** with **TypeScript** for type-safe UI  
+- **Tailwind CSS** for utility-first styling  
+- **Dexie.js** for IndexedDB data management  
+- **Web Speech API** for text-to-speech functionality  
+- Clean, modular architecture for extensibility
+
+## Installation
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/jancarauma/palaviva.git
+   ```
+2. Install dependencies:
+   ```bash
+   cd palaviva
+   npm install
+   ```
+3. Start the development server:
+   ```bash
+   npm run dev
+   ```
+4. Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+## Usage
+
+- Navigate to the **Create Article** page to import or paste the text you want to study.  
+- Open **Articles** to review your loaded texts, classify words, and add translations.  
+- Click the **Play** button to listen to the text with synchronized word highlighting.  
+- Use the **Create** page to add any custom text you wish to study.  
+- Open **Words** to view your vocabulary list and learning statistics.  
+- Access **Settings** to configure your native and target languages, page size, and other preferences.  
+
+## Contributing
+
+We welcome contributions to improve Palaviva:
+
+- Follow the [MIT License](#license) for usage and distribution.
+- Use [Conventional Commits](https://www.conventionalcommits.org/) for commit messages.
+- Open issues to report bugs or request features.
+- Submit pull requests with clear descriptions and tests where applicable.
+
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](./LICENSE) file for details.
