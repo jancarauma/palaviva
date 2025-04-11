@@ -18,7 +18,6 @@ import {
 } from "recharts";
 import { IWord } from "@/lib/db/types";
 
-const COLORS = ["#ff4444", "#ffbb33", "#00C851", "#33b5e5", "#2BBBAD"];
 const PAGE_SIZE = 20;
 
 export default function WordsPage() {
@@ -107,8 +106,6 @@ export default function WordsPage() {
       ),
     };
   }).reverse();
-
-  const comfortColors = ["#ff4444", "#ffbb33", "#00C851", "#33b5e5", "#2BBBAD"];
 
   const sortedWords = [...words].sort((a, b) => {
     if (a[sortConfig.key]! < b[sortConfig.key]!)
