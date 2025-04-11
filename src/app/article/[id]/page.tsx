@@ -4,12 +4,13 @@ import { useEffect, useState, useRef, Usable } from "react";
 import Link from "next/link";
 import { use } from "react";
 import { useRouter } from "next/navigation";
-import { db, IArticle, IWord } from "@/lib/db/schema";
+import { db } from "@/lib/db/schema";
+import { IArticle, IWord } from "@/lib/db/types";
 
 export default function ArticleView({
   params,
 }: {
-  params: Usable<{ id: string }>;
+  params: { id: string };
 }) {
   const router = useRouter();
   const [article, setArticle] = useState<IArticle | null>(null);
@@ -24,7 +25,8 @@ export default function ArticleView({
     text_splitting_regex: string;
     word_regex: string;
   } | null>(null);
-  const unwrappedParams = use(params) as { id: string };
+  //const unwrappedParams = use(params) as { id: string }
+  const unwrappedParams = params;
 
   const containerRef = useRef<HTMLDivElement>(null);
   const pageSize = 500;
