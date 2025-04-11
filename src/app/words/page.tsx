@@ -28,7 +28,6 @@ import {
 const PAGE_SIZE = 20;
 
 export default function WordsPage() {
-  const router = useRouter();
   const [words, setWords] = useState<IWord[]>([]);
   const [loading, setLoading] = useState(true);
   const [sortConfig, setSortConfig] = useState<{
@@ -258,6 +257,7 @@ export default function WordsPage() {
           )
         );
       } catch (error) {
+        console.error("Failed to update comfort level:", error);
         toast.error("Failed to update comfort level");
       } finally {
         setUpdating(null);
@@ -281,6 +281,7 @@ export default function WordsPage() {
         setSelectedWord(null);
         toast.success("Translation updated");
       } catch (error) {
+        console.error("Failed to update translation:", error);
         toast.error("Failed to update translation");
       }
     },

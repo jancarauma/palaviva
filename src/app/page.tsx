@@ -7,7 +7,6 @@ import { usePathname } from "next/navigation";
 import { db } from "@/lib/db/schema";
 import { formatDate } from "@/lib/utils";
 import { IArticle } from "@/lib/db/types";
-import Image from "next/image";
 
 export default function HomePage() {
   const pathname = usePathname();
@@ -348,7 +347,7 @@ export default function HomePage() {
                     </h3>
                   </div>
                   <p className="mb-6 text-gray-600 dark:text-gray-300 text-sm max-w-md mx-auto leading-6">
-                    We couldn't find any articles in {targetLanguageName.toLowerCase()}. You
+                    We couldn&apos;t find any articles in {targetLanguageName.toLowerCase()}. You
                     can either{" "}
                     <span className="inline-flex items-center text-purple-600 dark:text-purple-400 hover:underline cursor-pointer transition-colors">
                       <svg
