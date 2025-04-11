@@ -7,6 +7,8 @@ import { db } from "@/lib/db/schema";
 import { IArticle, IWord } from "@/lib/db/types";
 import { PauseIcon, PlayIcon, SpeakerWaveIcon } from "@/components/Icons";
 import { getComfortLevelName } from "@/lib/utils";
+import { ChevronLeftIcon } from "@heroicons/react/24/outline";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function ArticleView({ id }: { id: string }) {
   const router = useRouter();
@@ -21,10 +23,10 @@ export default function ArticleView({ id }: { id: string }) {
   const [languageSettings, setLanguageSettings] = useState<{
     text_splitting_regex: string;
     word_regex: string;
-  }>({ 
-    text_splitting_regex: "\\s+", 
-    word_regex: "\\p{L}+" 
-  });  
+  }>({
+    text_splitting_regex: "\\s+",
+    word_regex: "\\p{L}+",
+  });
 
   const containerRef = useRef<HTMLDivElement>(null);
   const pageSize = 500;
@@ -57,24 +59,18 @@ export default function ArticleView({ id }: { id: string }) {
 
     return isValid ? trimmed.toLowerCase() : "";
   };
-  
 
   useEffect(() => {
     const loadBaseData = async () => {
-      const [art] = await Promise.all([
-        db.articles.get(Number(id)),
-      ]);
-      
+      const [art] = await Promise.all([db.articles.get(Number(id))]);
+
       if (!art) {
         router.push("/");
         return;
       }
 
       const [lang] = await Promise.all([
-        db.languages.
-        where("iso_639_1").
-        equals(art.language).
-        first()
+        db.languages.where("iso_639_1").equals(art.language).first(),
       ]);
 
       return { art, lang };
@@ -155,37 +151,39 @@ export default function ArticleView({ id }: { id: string }) {
     wordOffsetsRef.current = offsets;
 
     const langMap: { [key: string]: string } = {
-      'en': 'en-US',
-      'pt': 'pt-BR',
-      'es': 'es-ES',
-      'fr': 'fr-FR'
+      en: "en-US",
+      pt: "pt-BR",
+      es: "es-ES",
+      fr: "fr-FR",
     };
-    
-    const targetLang = langMap[article.language.split('-')[0]] || article.language;
+
+    const targetLang =
+      langMap[article.language.split("-")[0]] || article.language;
     const synth = window.speechSynthesis;
     const voices = synth.getVoices();
 
-    const preferredVoices = voices.filter(voice => 
-      voice.lang === targetLang || 
-      voice.lang.startsWith(targetLang.split('-')[0])
+    const preferredVoices = voices.filter(
+      (voice) =>
+        voice.lang === targetLang ||
+        voice.lang.startsWith(targetLang.split("-")[0])
     );
 
     const u = new SpeechSynthesisUtterance(text);
-    
+
     if (preferredVoices.length > 0) {
       u.voice = preferredVoices[0];
     }
-    
+
     u.lang = targetLang;
     u.rate = 0.9;
     u.pitch = 1.2;
 
-    switch(targetLang.split('-')[0]) {
-      case 'en':
+    switch (targetLang.split("-")[0]) {
+      case "en":
         u.rate = 1.1;
         u.pitch = 1.0;
         break;
-      case 'pt':
+      case "pt":
         u.rate = 0.9;
         break;
     }
@@ -264,13 +262,13 @@ export default function ArticleView({ id }: { id: string }) {
     if (typeof window !== "undefined") {
       const updateVoices = () => {
         const voices = window.speechSynthesis.getVoices();
-        console.log('Available voices:', voices);
+        console.log("Available voices:", voices);
         setVoicesLoaded(true);
       };
-  
+
       window.speechSynthesis.onvoiceschanged = updateVoices;
       updateVoices();
-  
+
       return () => {
         window.speechSynthesis.onvoiceschanged = null;
       };
@@ -289,21 +287,18 @@ export default function ArticleView({ id }: { id: string }) {
         speechSynthesis.current!.onvoiceschanged = null;
       };
     }
-  }, []);  
+  }, []);
 
   const splitText = (text: string) => {
     if (!languageSettings) return [];
-  
+
     try {
       const wordPattern = languageSettings.word_regex
         ? languageSettings.word_regex.replace(/^\^|\$$/g, "")
         : "\\p{L}+"; // Fallback
-  
-      const tokenRegex = new RegExp(
-        `(${wordPattern})|([\\p{P}\\p{S}])`, 
-        "gui"
-      );
-  
+
+      const tokenRegex = new RegExp(`(${wordPattern})|([\\p{P}\\p{S}])`, "gui");
+
       return text.match(tokenRegex) || [];
     } catch (e) {
       console.error("Regex inválida, usando fallback", e);
@@ -356,20 +351,21 @@ export default function ArticleView({ id }: { id: string }) {
   }
 
   const wordsArray = splitText(article.original);
-  //const wordsUnique = new Set(
-  //  wordsArray.map(word => {
-  //      const cleanedWord = word.replace(/^[^a-zA-ZÀ-ÿ]+|[^a-zA-ZÀ-ÿ]+$/g, '');
-  //      return cleanedWord.toLowerCase();
-  //  })
-  //);
-  const totalWords = wordsArray.length;
-  //const totalWords = wordsUnique.size;
-  const knownWords = words.filter((w) => w?.comfort >= 4).length;
-  //const knownWords = words.filter(w => w?.comfort >= 4).length; (all known words)
+  const wordsUnique = new Set(
+    wordsArray.map(word => {
+        const cleanedWord = word.replace(/^[^a-zA-ZÀ-ÿ]+|[^a-zA-ZÀ-ÿ]+$/g, '');
+        return cleanedWord.toLowerCase();
+    })
+  );
+  //const totalWords = wordsArray.length;
+  const totalWords = wordsUnique.size;
+  //const knownWords = words.filter((w) => w?.comfort >= 4).length;
+  const knownWords = words.filter(w => w?.comfort >= 4).length; //(all known words)
   const startIdx = currentPage * pageSize;
   const endIdx = startIdx + pageSize;
   const wordsToShow = wordsArray.slice(startIdx, endIdx);
   const totalPages = Math.ceil(totalWords / pageSize);
+  const progress = (knownWords / totalWords) * 100;
 
   const handleWordClick = async (rawWord: string) => {
     if (!languageSettings || !article) return;
@@ -408,7 +404,7 @@ export default function ArticleView({ id }: { id: string }) {
         language: article.language,
         is_not_a_word: false,
         count: wordFrequency.get(cleanedWord) || 0,
-        date_created: Date.now()
+        date_created: Date.now(),
       };
 
       const id = await db.words.add(newWord);
@@ -430,63 +426,69 @@ export default function ArticleView({ id }: { id: string }) {
 
   const playPronunciation = () => {
     if (!selectedWord || !article || typeof window === "undefined") return;
-  
+
     const synth = window.speechSynthesis;
     if (!synth) {
       alert("Text-to-speech not available!");
       return;
     }
-  
+
     const langMap: { [key: string]: string } = {
-      'en': 'en-US',
-      'pt': 'pt-BR',
-      'es': 'es-ES',
-      'fr': 'fr-FR'
+      en: "en-US",
+      pt: "pt-BR",
+      es: "es-ES",
+      fr: "fr-FR",
     };
-  
-    const targetLang = langMap[article.language.split('-')[0]] || article.language;
-  
+
+    const targetLang =
+      langMap[article.language.split("-")[0]] || article.language;
+
     const voices = synth.getVoices();
-    
-    const preferredVoices = voices.filter(voice => 
-      voice.lang === targetLang || 
-      voice.lang.startsWith(targetLang.split('-')[0])
+
+    const preferredVoices = voices.filter(
+      (voice) =>
+        voice.lang === targetLang ||
+        voice.lang.startsWith(targetLang.split("-")[0])
     );
-  
+
     if (preferredVoices.length === 0) {
       console.info(`Voice not available for ${targetLang}`);
       //return;
     }
-  
+
     const utterance = new SpeechSynthesisUtterance(selectedWord.name);
     utterance.voice = preferredVoices[0];
     utterance.lang = targetLang;
     utterance.rate = 0.9;
     utterance.pitch = 1.2;
-  
-    switch(targetLang.split('-')[0]) {
-      case 'en':
+
+    switch (targetLang.split("-")[0]) {
+      case "en":
         utterance.rate = 1.1;
         utterance.pitch = 1.0;
         break;
-      case 'pt':
+      case "pt":
         utterance.rate = 0.9;
         break;
     }
-  
+
     synth.cancel();
     synth.speak(utterance);
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-2">
       <div className="max-w-7xl mx-auto p-4 sm:p-6">
         <div className="mb-6 flex flex-col md:flex-row gap-4 justify-between items-start md:items-center">
-          <Link href="/" className="text-blue-600 hover:underline">
-            &larr; Back to articles
+          <Link
+            href="/"
+            className="inline-flex items-center text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-500 transition-colors"
+          >
+            <ChevronLeftIcon className="w-5 h-5 mr-2" />
+            Back to Texts
           </Link>
-          <div className="flex flex-wrap gap-2 items-center justify-end">
-            <span className="text-sm">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            {/*<span className="text-sm">
               Known words: {knownWords}/{totalWords} (
               {((knownWords / totalWords) * 100).toFixed(1)}%)
             </span>
@@ -499,12 +501,28 @@ export default function ArticleView({ id }: { id: string }) {
               }`}
             >
               {showMarkAll === 0 ? "Mark all known?" : "Confirm"}
-            </button>
+            </button>*/}
+            <div className="flex-1">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Learning Progress: 
+                </span>
+                <span className="px-1 text-sm text-gray-500 dark:text-gray-400">
+                  {knownWords}/{totalWords} words
+                </span>
+              </div>
+              <div className="relative h-3 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
+                <div
+                  className="absolute left-0 top-0 h-full bg-gradient-to-r from-purple-500 to-fuchsia-500 transition-all duration-500"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+            </div>
             {voicesLoaded && (
               <div className="flex items-center gap-4">
                 <button
                   onClick={togglePlayback}
-                  className="flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm"
+                  className="cursor-pointer flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-purple-600 to-fuchsia-600 hover:from-purple-700 hover:to-fuchsia-700 text-white rounded-lg transition-all shadow-md hover:shadow-lg"
                 >
                   {isPlaying ? (
                     <>
@@ -528,12 +546,14 @@ export default function ArticleView({ id }: { id: string }) {
 
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Article Section */}
-          <div className="flex-1 bg-white rounded-lg shadow-md p-4 md:p-6 border">
-            <h1 className="text-xl md:text-2xl font-bold mb-4">{article.name}</h1>
+          <div className="flex-1 bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-100 dark:border-gray-700">
+            <h1 className="text-xl md:text-2xl font-bold mb-4">
+              {article.name}
+            </h1>
 
             <div
               ref={containerRef}
-              className="prose mb-6 h-[50vh] sm:h-[60vh] overflow-y-auto text-base sm:text-lg"
+              className="prose dark:prose-invert max-w-none mb-6 h-[50vh] sm:h-[60vh] overflow-y-auto text-base sm:text-lg"
             >
               {!article && (
                 <div className="text-gray-500">Loading article...</div>
@@ -579,7 +599,7 @@ export default function ArticleView({ id }: { id: string }) {
                           : ""
                       } ${
                         selectedWord && wordData?.id === selectedWord.id
-                          ? "border-2 border-blue-500"
+                          ? "ring-2 ring-purple-500 scale-110"
                           : ""
                       }`}
                       style={{
@@ -597,11 +617,11 @@ export default function ArticleView({ id }: { id: string }) {
             </div>
 
             {/* Pagination */}
-            <div className="flex justify-between items-center border-t pt-4">
+            <div className="flex justify-between items-center border-t pt-6 border-gray-100 dark:border-gray-700">
               <button
                 onClick={() => handlePageChange("prev")}
                 disabled={currentPage === 0}
-                className="px-3 py-1.5 sm:px-4 sm:py-2 text-sm bg-gray-100 rounded-md disabled:opacity-50 cursor-pointer"
+                className="px-6 cursor-pointer py-2.5 rounded-lg border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors disabled:opacity-50"
               >
                 Previous Page
               </button>
@@ -611,7 +631,7 @@ export default function ArticleView({ id }: { id: string }) {
               <button
                 onClick={() => handlePageChange("next")}
                 disabled={currentPage === totalPages - 1}
-                className="px-3 py-1.5 sm:px-4 sm:py-2 text-sm bg-gray-100 rounded-md disabled:opacity-50 cursor-pointer"
+                className="px-6 cursor-pointer py-2.5 rounded-lg border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors disabled:opacity-50"
               >
                 Next Page
               </button>
@@ -619,31 +639,38 @@ export default function ArticleView({ id }: { id: string }) {
           </div>
 
           {/* Translation Sidebar */}
-          <div className="w-full lg:w-96 bg-white rounded-lg shadow-md p-4 md:p-6 border h-[60vh] lg:h-[80vh] flex flex-col sticky top-6">
-            {selectedWord ? (
-              <>
-                <div className="flex justify-between items-center mb-4">
-                  <div className="flex justify-between items-center">
-                    <h3 className="text-base md:text-lg font-bold p-1">{selectedWord.name}</h3>
+          <AnimatePresence>
+            {selectedWord && (
+              <motion.div
+                initial={{ x: 100, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                exit={{ x: 100, opacity: 0 }}
+                className="w-full lg:w-96 bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-100 dark:border-gray-700 h-[60vh] lg:h-[80vh] flex flex-col sticky top-6"
+              >
+                <div className="flex justify-between items-center mb-6">
+                  <div className="flex items-center gap-3">
+                    <h3 className="text-xl font-semibold dark:text-gray-100">
+                      {selectedWord.name}
+                    </h3>
                     <button
                       onClick={playPronunciation}
-                      className="p-1 hover:bg-gray-100 rounded"
+                      className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors cursor-pointer"
                       title="Listen"
                     >
-                      <SpeakerWaveIcon className="w-5 h-5 text-blue-500" />
+                      <SpeakerWaveIcon className="w-6 h-6 text-blue-500 dark:text-blue-400" />
                     </button>
                   </div>
                   <button
                     onClick={() => setSelectedWord(null)}
-                    className="text-gray-500 hover:text-gray-700"
+                    className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 text-2xl"
                   >
-                    ×
+                    &times;
                   </button>
                 </div>
 
-                <div className="space-y-4 flex-1">
-                  <div>
-                    <label className="block text-sm font-medium mb-2">
+                <div className="space-y-6 flex-1">
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                       Translation
                     </label>
                     <input
@@ -667,7 +694,7 @@ export default function ArticleView({ id }: { id: string }) {
                           });
                         } catch (error) {
                           console.error("Error saving translation:", error);
-                          
+
                           setSelectedWord(selectedWord);
                           setWords((prev) =>
                             prev.map((w) =>
@@ -677,15 +704,15 @@ export default function ArticleView({ id }: { id: string }) {
                         }
                       }}
                       placeholder="Add translation..."
-                      className="w-full p-2 border rounded"
+                      className="w-full px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-700 dark:bg-gray-700/50 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                     />
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium mb-2">
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                       Comfort Level
                     </label>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <div className="grid grid-cols-2 gap-3">
                       {[1, 2, 3, 4, 5].map((num) => (
                         <button
                           key={num}
@@ -707,7 +734,7 @@ export default function ArticleView({ id }: { id: string }) {
                               });
                             } catch (error) {
                               console.error("Error updating comfort:", error);
-                              
+
                               setSelectedWord(selectedWord);
                               setWords((prev) =>
                                 prev.map((w) =>
@@ -716,9 +743,9 @@ export default function ArticleView({ id }: { id: string }) {
                               );
                             }
                           }}
-                          className={`p-2 text-sm cursor-pointer rounded ${
+                          className={`p-3 cursor-pointer rounded-lg text-sm font-medium transition-all ${
                             selectedWord.comfort === num
-                              ? "bg-blue-500 text-white"
+                              ? "bg-purple-600 text-white"
                               : num === 5
                               ? "bg-green-100 hover:bg-green-300"
                               : num === 4
@@ -727,7 +754,7 @@ export default function ArticleView({ id }: { id: string }) {
                               ? "bg-yellow-100 hover:bg-yellow-300"
                               : num === 2
                               ? "bg-red-100 hover:bg-red-300"
-                              : "bg-gray-100 hover:bg-gray-200"
+                              : "bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600"
                           }`}
                         >
                           {num} - {getComfortLevelName(num)}
@@ -744,13 +771,9 @@ export default function ArticleView({ id }: { id: string }) {
                     />
                   </div>*/}
                 </div>
-              </>
-            ) : (
-              <div className="text-gray-500 text-center flex-1 flex items-center justify-center">
-                Select a word to view details
-              </div>
+              </motion.div>
             )}
-          </div>
+          </AnimatePresence>
         </div>
       </div>
     </div>
