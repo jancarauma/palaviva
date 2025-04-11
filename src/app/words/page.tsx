@@ -673,7 +673,7 @@ export default function WordsPage() {
   );
 }
 
-export const SortIndicator = ({
+const SortIndicator = ({
   isActive,
   direction,
 }: {
