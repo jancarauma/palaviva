@@ -495,12 +495,12 @@ export default function ArticleView({ id }: { id: string }) {
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="max-w-7xl mx-auto p-6">
-        <div className="mb-6 flex justify-between items-center">
+      <div className="max-w-7xl mx-auto p-4 sm:p-6">
+        <div className="mb-6 flex flex-col md:flex-row gap-4 justify-between items-start md:items-center">
           <Link href="/" className="text-blue-600 hover:underline">
             &larr; Back to articles
           </Link>
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap gap-2 items-center justify-end">
             <span className="text-sm">
               Known words: {knownWords}/{totalWords} (
               {((knownWords / totalWords) * 100).toFixed(1)}%)
@@ -519,7 +519,7 @@ export default function ArticleView({ id }: { id: string }) {
               <div className="flex items-center gap-4">
                 <button
                   onClick={togglePlayback}
-                  className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                  className="flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm"
                 >
                   {isPlaying ? (
                     <>
@@ -541,14 +541,14 @@ export default function ArticleView({ id }: { id: string }) {
           </div>
         </div>
 
-        <div className="flex gap-6">
+        <div className="flex flex-col lg:flex-row gap-6">
           {/* Article Section */}
-          <div className="flex-1 bg-white rounded-lg shadow-md p-6 border">
-            <h1 className="text-2xl font-bold mb-4">{article.name}</h1>
+          <div className="flex-1 bg-white rounded-lg shadow-md p-4 md:p-6 border">
+            <h1 className="text-xl md:text-2xl font-bold mb-4">{article.name}</h1>
 
             <div
               ref={containerRef}
-              className="prose mb-6 h-[60vh] overflow-y-auto text-lg"
+              className="prose mb-6 h-[50vh] sm:h-[60vh] overflow-y-auto text-base sm:text-lg"
             >
               {!article && (
                 <div className="text-gray-500">Loading article...</div>
@@ -616,7 +616,7 @@ export default function ArticleView({ id }: { id: string }) {
               <button
                 onClick={() => handlePageChange("prev")}
                 disabled={currentPage === 0}
-                className="px-4 py-2 bg-gray-100 rounded-md disabled:opacity-50"
+                className="px-3 py-1.5 sm:px-4 sm:py-2 text-sm bg-gray-100 rounded-md disabled:opacity-50 cursor-pointer"
               >
                 Previous Page
               </button>
@@ -626,7 +626,7 @@ export default function ArticleView({ id }: { id: string }) {
               <button
                 onClick={() => handlePageChange("next")}
                 disabled={currentPage === totalPages - 1}
-                className="px-4 py-2 bg-gray-100 rounded-md disabled:opacity-50"
+                className="px-3 py-1.5 sm:px-4 sm:py-2 text-sm bg-gray-100 rounded-md disabled:opacity-50 cursor-pointer"
               >
                 Next Page
               </button>
@@ -634,12 +634,12 @@ export default function ArticleView({ id }: { id: string }) {
           </div>
 
           {/* Translation Sidebar */}
-          <div className="w-96 bg-white rounded-lg shadow-md p-6 border h-[80vh] flex flex-col">
+          <div className="w-full lg:w-96 bg-white rounded-lg shadow-md p-4 md:p-6 border h-[60vh] lg:h-[80vh] flex flex-col sticky top-6">
             {selectedWord ? (
               <>
                 <div className="flex justify-between items-center mb-4">
                   <div className="flex justify-between items-center">
-                    <h3 className="text-lg font-bold p-1">{selectedWord.name}</h3>
+                    <h3 className="text-base md:text-lg font-bold p-1">{selectedWord.name}</h3>
                     <button
                       onClick={playPronunciation}
                       className="p-1 hover:bg-gray-100 rounded"
@@ -712,7 +712,7 @@ export default function ArticleView({ id }: { id: string }) {
                     <label className="block text-sm font-medium mb-2">
                       Comfort Level
                     </label>
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       {[1, 2, 3, 4, 5].map((num) => (
                         <button
                           key={num}
