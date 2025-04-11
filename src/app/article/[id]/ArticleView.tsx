@@ -599,7 +599,7 @@ export default function ArticleView({ id }: { id: string }) {
                           : ""
                       } ${
                         selectedWord && wordData?.id === selectedWord.id
-                          ? "ring-2 ring-purple-500 scale-110"
+                          ? "ring-2 ring-purple-500 dark:bg-transparent"
                           : ""
                       }`}
                       style={{
@@ -745,16 +745,16 @@ export default function ArticleView({ id }: { id: string }) {
                           }}
                           className={`p-3 cursor-pointer rounded-lg text-sm font-medium transition-all ${
                             selectedWord.comfort === num
-                              ? "bg-purple-600 text-white"
+                              ? "bg-purple-600 text-white text-black"
                               : num === 5
-                              ? "bg-green-100 hover:bg-green-300"
+                              ? "bg-green-100 hover:bg-green-900/30  text-black"
                               : num === 4
-                              ? "bg-blue-100 hover:bg-blue-300"
+                              ? "bg-blue-100 hover:bg-blue-900/30  text-black"
                               : num === 3
-                              ? "bg-yellow-100 hover:bg-yellow-300"
+                              ? "bg-yellow-100 hover:bg-yellow-900/30  text-black"
                               : num === 2
-                              ? "bg-red-100 hover:bg-red-300"
-                              : "bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600"
+                              ? "bg-red-100 hover:bg-red-900/30  text-black"
+                              : "bg-gray-100 hover:bg-gray-900/30 text-black"
                           }`}
                         >
                           {num} - {getComfortLevelName(num)}
