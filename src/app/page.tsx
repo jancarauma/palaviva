@@ -233,8 +233,8 @@ function ArticleItem({ article, onDelete }: { article: IArticle; onDelete: (id: 
           </Link>
           
           <div className="text-xs text-gray-500 dark:text-gray-400">
-            <span>Last opened: {formatDate(article.last_opened)}</span>
-            <span className="mx-2">|</span>
+            {/*<span>Last opened: {formatDate(article.last_opened)}</span>
+            <span className="mx-2">|</span>*/}
             <span>Created: {formatDate(article.date_created)}</span>
           </div>
         </div>
