@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { db } from "@/lib/db/schema";
 import {
@@ -18,19 +18,23 @@ import {
 } from "recharts";
 import { IWord } from "@/lib/db/types";
 import { getComfortColor, getComfortLevelName } from "@/lib/utils";
+import { toast } from "react-hot-toast";
+import { useRouter } from "next/navigation";
+import {
+  ChevronLeftIcon,
+  MagnifyingGlassIcon,
+} from "@heroicons/react/24/outline";
 
 const PAGE_SIZE = 20;
 
 export default function WordsPage() {
+  const router = useRouter();
   const [words, setWords] = useState<IWord[]>([]);
   const [loading, setLoading] = useState(true);
   const [sortConfig, setSortConfig] = useState<{
     key: keyof IWord;
     direction: "asc" | "desc";
-  }>({
-    key: "count",
-    direction: "desc",
-  });
+  }>({ key: "count", direction: "desc" });
   const [selectedWord, setSelectedWord] = useState<IWord | null>(null);
   const [editTranslation, setEditTranslation] = useState("");
   const [currentPage, setCurrentPage] = useState(0);
@@ -236,88 +240,80 @@ export default function WordsPage() {
     })(),
   };
 
-  const handleSort = (key: keyof IWord) => {
+  const handleSort = useCallback((key: keyof IWord) => {
     setSortConfig((prev) => ({
       key,
       direction: prev.key === key && prev.direction === "asc" ? "desc" : "asc",
     }));
-  };
+  }, []);
 
-  const updateComfort = async (wordId: number, newComfort: number) => {
-    setUpdating(wordId);
-    try {
-      await db.words.update(wordId, { comfort: newComfort });
-      setWords((prev) =>
-        prev.map((word) =>
-          word.id === wordId ? { ...word, comfort: newComfort } : word
-        )
-      );
-    } catch (error) {
-      console.error("Error updating comfort level:", error);
-    } finally {
-      setUpdating(null);
-    }
-  };
+  const updateComfort = useCallback(
+    async (wordId: number, newComfort: number) => {
+      setUpdating(wordId);
+      try {
+        await db.words.update(wordId, { comfort: newComfort });
+        setWords((prev) =>
+          prev.map((word) =>
+            word.id === wordId ? { ...word, comfort: newComfort } : word
+          )
+        );
+      } catch (error) {
+        toast.error("Failed to update comfort level");
+      } finally {
+        setUpdating(null);
+      }
+    },
+    []
+  );
 
-  const updateTranslation = async (wordId: number) => {
-    if (!editTranslation.trim()) return;
+  const updateTranslation = useCallback(
+    async (wordId: number) => {
+      if (!editTranslation.trim()) return;
+      try {
+        await db.words.update(wordId, { translation: editTranslation });
+        setWords((prev) =>
+          prev.map((word) =>
+            word.id === wordId
+              ? { ...word, translation: editTranslation }
+              : word
+          )
+        );
+        setSelectedWord(null);
+        toast.success("Translation updated");
+      } catch (error) {
+        toast.error("Failed to update translation");
+      }
+    },
+    [editTranslation]
+  );
 
-    try {
-      await db.words.update(wordId, { translation: editTranslation });
-      setWords((prev) =>
-        prev.map((word) =>
-          word.id === wordId ? { ...word, translation: editTranslation } : word
-        )
-      );
-      setSelectedWord(null);
-    } catch (error) {
-      console.error("Error updating translation:", error);
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-      </div>
-    );
-  }
+  if (loading) return <LoadingSkeleton />;
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
       <div className="max-w-6xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-800 dark:text-white">
-            Words Dashboard
-          </h1>
-          <Link
-            href="/"
-            className="text-blue-600 dark:text-blue-400 hover:underline mt-2 inline-block"
-          >
-            &larr; Back to texts
-          </Link>
-        </div>
+        <Header />
 
         {/* Statistics Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
-            <div className="text-gray-500 dark:text-gray-300 text-sm">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+            <div className="text-gray-500 dark:text-gray-300 text-sm mb-2 capitalize">
               Total Words
             </div>
             <div className="text-2xl font-bold dark:text-white">
               {safeStat(stats.totalWords, (n) => n.toFixed(0))}
             </div>
           </div>
-          <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
-            <div className="text-gray-500 dark:text-gray-300 text-sm">
+          <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+            <div className="text-gray-500 dark:text-gray-300 text-sm mb-2 capitalize">
               Known Words
             </div>
             <div className="text-2xl font-bold dark:text-white">
               {safeStat(stats.knownWords, (n) => n.toFixed(0))}
             </div>
           </div>
-          <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
-            <div className="text-gray-500 dark:text-gray-300 text-sm">
+          <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+            <div className="text-gray-500 dark:text-gray-300 text-sm mb-2 capitalize">
               Avg Comfort
             </div>
             <div className="flex items-center gap-2">
@@ -345,40 +341,40 @@ export default function WordsPage() {
               )}
             </div>
           </div>
-          <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
-            <div className="text-gray-500 dark:text-gray-300 text-sm">
+          <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+            <div className="text-gray-500 dark:text-gray-300 text-sm mb-2 capitalize">
               Most Frequent
             </div>
             <div className="text-2xl font-bold truncate dark:text-white">
               {stats.mostFrequent}
             </div>
           </div>
-          <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
-            <div className="text-gray-500 dark:text-gray-300 text-sm">
+          <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+            <div className="text-gray-500 dark:text-gray-300 text-sm mb-2 capitalize">
               Last 7 days
             </div>
             <div className="text-2xl font-bold dark:text-white">
               {stats.newThisWeek}
             </div>
           </div>
-          <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
-            <div className="text-gray-500 dark:text-gray-300 text-sm">
+          <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+            <div className="text-gray-500 dark:text-gray-300 text-sm mb-2 capitalize">
               Last Month
             </div>
             <div className="text-2xl font-bold dark:text-white">
               {stats.newThisMonth}
             </div>
           </div>
-          <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
-            <div className="text-gray-500 dark:text-gray-300 text-sm">
+          <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+            <div className="text-gray-500 dark:text-gray-300 text-sm mb-2 capitalize">
               Last Year
             </div>
             <div className="text-2xl font-bold dark:text-white">
               {stats.newThisYear}
             </div>
           </div>
-          <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
-            <div className="text-gray-500 dark:text-gray-300 text-sm">
+          <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+            <div className="text-gray-500 dark:text-gray-300 text-sm mb-2 capitalize">
               Growth Rate
             </div>
             <div className="text-2xl font-bold dark:text-white">
@@ -389,119 +385,134 @@ export default function WordsPage() {
         </div>
 
         {/* Timeline Distribution Chart */}
-        <div className="mb-6 bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
-          <h3 className="text-lg font-semibold mb-4 dark:text-white">
-            Comfort Level Evolution
-          </h3>
-          <ResponsiveContainer width="100%" height={400}>
-            <BarChart data={timelineData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis
-                dataKey="month"
-                tickFormatter={(value, index) => {
-                  const year = timelineData[index].year.toString().slice(2);
-                  return `${value} '${year}`;
-                }}
-              />
-              <YAxis />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "#1f2937",
-                  border: "none",
-                  borderRadius: "8px",
-                }}
-                formatter={(value: number, name: string) => [
-                  value,
-                  COMFORT_LEVELS.find((cl) => `level_${cl.level}` === name)
-                    ?.name || name,
-                ]}
-              />
-              <Legend
-                formatter={(value: string) =>
-                  COMFORT_LEVELS.find((cl) => `level_${cl.level}` === value)
-                    ?.name || value
-                }
-                wrapperStyle={{ paddingTop: "20px" }}
-              />
-              {COMFORT_LEVELS.map(({ level, hoverColor }) => (
-                <Bar
-                  key={level}
-                  dataKey={`level_${level}`}
-                  name={`level_${level}`}
-                  fill={hoverColor}
-                  stackId="a"
-                  radius={[3, 3, 0, 0]}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          <div className="mb-6 bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+            <h3 className="text-lg font-semibold mb-4 dark:text-white">
+              Comfort Level Evolution
+            </h3>
+            <ResponsiveContainer width="100%" height={400}>
+              <BarChart data={timelineData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis
+                  dataKey="month"
+                  tickFormatter={(value, index) => {
+                    const year = timelineData[index].year.toString().slice(2);
+                    return `${value} '${year}`;
+                  }}
                 />
-              ))}
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-
-        {/* Comfort Distribution Chart */}
-        <div className="mb-6 bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
-          <h3 className="text-lg font-semibold mb-4 dark:text-white">
-            Comfort Level Distribution
-          </h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={comfortData}
-                cx="50%"
-                cy="50%"
-                innerRadius={60}
-                outerRadius={80}
-                paddingAngle={5}
-                dataKey="value"
-              >
-                {comfortData.map((entry, index) => (
-                  <Cell
-                    key={`cell-${index}`}
-                    fill={COMFORT_LEVELS[index].hoverColor} // Usando as cores do seu padrão
+                <YAxis />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "#1f2937",
+                    border: "none",
+                    borderRadius: "8px",
+                  }}
+                  formatter={(value: number, name: string) => [
+                    value,
+                    COMFORT_LEVELS.find((cl) => `level_${cl.level}` === name)
+                      ?.name || name,
+                  ]}
+                />
+                <Legend
+                  formatter={(value: string) =>
+                    COMFORT_LEVELS.find((cl) => `level_${cl.level}` === value)
+                      ?.name || value
+                  }
+                  wrapperStyle={{ paddingTop: "20px" }}
+                />
+                {COMFORT_LEVELS.map(({ level, hoverColor }) => (
+                  <Bar
+                    key={level}
+                    dataKey={`level_${level}`}
+                    name={`level_${level}`}
+                    fill={hoverColor}
+                    stackId="a"
+                    radius={[3, 3, 0, 0]}
                   />
                 ))}
-              </Pie>
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "#1f2937",
-                  border: "none",
-                  borderRadius: "8px",
-                  color: "#fff",
-                  boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
-                }}
-                formatter={(value: number, name: string) => [
-                  value,
-                  COMFORT_LEVELS.find((cl) => cl.name === name)?.name || name,
-                ]}
-              />
-              <Legend
-                formatter={(value: string) =>
-                  COMFORT_LEVELS.find((cl) => cl.name === value)?.name || value
-                }
-                wrapperStyle={{ paddingTop: "10px" }}
-              />
-            </PieChart>
-          </ResponsiveContainer>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Comfort Distribution Chart */}
+          <div className="mb-6 bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+            <h3 className="text-lg font-semibold mb-4 dark:text-white">
+              Comfort Level Distribution
+            </h3>
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={comfortData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={80}
+                  paddingAngle={5}
+                  dataKey="value"
+                >
+                  {comfortData.map((entry, index) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={COMFORT_LEVELS[index].hoverColor} // Usando as cores do seu padrão
+                    />
+                  ))}
+                </Pie>
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "#1f2937",
+                    border: "none",
+                    borderRadius: "8px",
+                    color: "#fff",
+                    boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
+                  }}
+                  formatter={(value: number, name: string) => [
+                    value,
+                    COMFORT_LEVELS.find((cl) => cl.name === name)?.name || name,
+                  ]}
+                />
+                <Legend
+                  formatter={(value: string) =>
+                    COMFORT_LEVELS.find((cl) => cl.name === value)?.name ||
+                    value
+                  }
+                  wrapperStyle={{ paddingTop: "10px" }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
         </div>
 
         {/* Filters */}
-        <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-          <input
-            type="text"
-            placeholder="Search words..."
-            className="p-2 border rounded dark:bg-gray-700 dark:text-white dark:border-gray-600"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+        <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4 bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm">
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Search words..."
+              className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 
+               dark:bg-gray-700/50 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            <MagnifyingGlassIcon className="w-5 h-5 absolute left-3 top-2.5 text-gray-400 dark:text-gray-500" />
+          </div>
           <select
-            className="p-2 border rounded dark:bg-gray-700 dark:text-white dark:border-gray-600"
+            className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 
+             dark:bg-gray-700/50 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
             value={comfortFilter || ""}
             onChange={(e) =>
               setComfortFilter(e.target.value ? Number(e.target.value) : null)
             }
           >
             <option value="">All Comfort Levels</option>
-            {[1, 2, 3, 4, 5].map((level) => (
-              <option key={level} value={level}>
+            {[/*1, */ 2, 3, 4, 5].map((level) => (
+              <option
+                key={level}
+                value={level}
+                className="flex items-center gap-2"
+              >
+                <span
+                  className={`w-3 h-3 rounded-full ${getComfortColor(level)}`}
+                />
                 {getComfortLevelName(level)}
               </option>
             ))}
@@ -509,19 +520,19 @@ export default function WordsPage() {
         </div>
 
         {/* Words Table */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
-          <div className="overflow-x-auto relative max-h-[500px]">
-            <table className="w-full min-w-[800px] sticky top-0">
-              <thead className="bg-gray-50 dark:bg-gray-700">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden">
+          <div className="overflow-x-auto relative max-h-[600px]">
+            <table className="w-full min-w-[800px]">
+              <thead className="bg-gray-50 dark:bg-gray-700 sticky top-0">
                 <tr>
                   {(["name", "translation", "comfort", "count"] as const).map(
                     (key) => (
                       <th
                         key={key}
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600"
+                        className="px-6 py-4 text-sm font-medium text-gray-500 dark:text-gray-300 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600"
                         onClick={() => handleSort(key)}
                       >
-                        <div className="flex items-center">
+                        <div className="flex items-center gap-2">
                           {key.charAt(0).toUpperCase() + key.slice(1)}
                           <SortIndicator
                             isActive={sortConfig.key === key}
@@ -616,6 +627,7 @@ export default function WordsPage() {
                             setWords((prev) =>
                               prev.filter((w) => w.id !== word.id)
                             );
+                            toast.success("Word deleted");
                           }
                         }}
                       >
@@ -624,17 +636,17 @@ export default function WordsPage() {
                     </td>
                   </tr>
                 ))}
-              </tbody>
-              {filteredWords.length === 0 && (
-                <div className="p-8 text-center text-gray-500 dark:text-gray-400">
+              </tbody>              
+            </table>
+            {filteredWords.length === 0 && (
+                <div className="p-8 text-center">
                   <div className="text-4xl mb-4">📭</div>
-                  <h3 className="text-xl font-medium">No words found</h3>
-                  <p className="mt-2">
-                    Try adjusting your filters or add new words.
+                  <h3 className="text-xl font-medium dark:text-white">No words found</h3>
+                  <p className="mt-2 text-gray-500 dark:text-gray-400">
+                  Try adjusting your filters or add new words through articles
                   </p>
                 </div>
               )}
-            </table>
           </div>
 
           {/* Pagination */}
@@ -642,11 +654,11 @@ export default function WordsPage() {
             <button
               onClick={() => setCurrentPage((p) => Math.max(0, p - 1))}
               disabled={currentPage === 0}
-              className="px-4 py-2 bg-gray-100 dark:bg-gray-600 rounded-md disabled:opacity-50 dark:text-white"
+              className="px-4 py-2 rounded-lg bg-white dark:bg-gray-600 shadow-sm disabled:opacity-50 cursor-pointer"
             >
               Previous
             </button>
-            <span className="dark:text-gray-300">
+            <span className="text-gray-700 dark:text-gray-300">
               Page {currentPage + 1} of{" "}
               {Math.ceil(filteredWords.length / PAGE_SIZE)}
             </span>
@@ -662,7 +674,7 @@ export default function WordsPage() {
               disabled={
                 currentPage === Math.ceil(filteredWords.length / PAGE_SIZE) - 1
               }
-              className="px-4 py-2 bg-gray-100 dark:bg-gray-600 rounded-md disabled:opacity-50 dark:text-white"
+              className="px-4 py-2 rounded-lg bg-white dark:bg-gray-600 shadow-sm disabled:opacity-50 cursor-pointer"
             >
               Next
             </button>
@@ -684,4 +696,40 @@ const SortIndicator = ({
     {!isActive && "↕"}
     {isActive && (direction === "asc" ? "↑" : "↓")}
   </span>
+);
+
+// Sub-components for better organization
+
+const LoadingSkeleton = () => (
+  <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
+    <div className="max-w-6xl mx-auto space-y-6">
+      <div className="h-12 bg-gray-200 dark:bg-gray-700 rounded-xl animate-pulse" />
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {[...Array(8)].map((_, i) => (
+          <div
+            key={i}
+            className="h-24 bg-gray-100 dark:bg-gray-800 rounded-lg animate-pulse"
+          />
+        ))}
+      </div>
+      <div className="h-96 bg-gray-100 dark:bg-gray-800 rounded-xl animate-pulse" />
+    </div>
+  </div>
+);
+
+const Header = () => (
+  <div className="mb-8">
+    <div className="flex items-center justify-between mb-6">
+      <Link
+        href="/"
+        className="inline-flex items-center text-purple-600 dark:text-purple-400 hover:text-purple-700"
+      >
+        <ChevronLeftIcon className="w-5 h-5 mr-2" />
+        Back to Texts
+      </Link>
+    </div>
+    <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-fuchsia-600 bg-clip-text text-transparent">
+      Words
+    </h1>
+  </div>
 );
