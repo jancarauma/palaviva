@@ -585,17 +585,17 @@ export default function ArticleView({ id }: { id: string }) {
                           : ""
                       } ${
                         isCurrentWord && isWord
-                          ? "bg-yellow-200 scale-105 shadow-md"
+                          ? "bg-orange-100 dark:bg-orange-900/30 scale-105 shadow-md"
                           : ""
                       } ${
                         comfort === 5
-                          ? "bg-green-100"
+                          ? "bg-green-100 dark:bg-green-900/30"
                           : comfort === 4
-                          ? "bg-blue-100"
+                          ? "bg-blue-100 dark:bg-blue-900/30"
                           : comfort === 3
-                          ? "bg-yellow-100"
+                          ? "bg-yellow-100 dark:bg-yellow-900/30"
                           : comfort === 2
-                          ? "bg-red-100"
+                          ? "bg-red-100 dark:bg-red-900/30"
                           : ""
                       } ${
                         selectedWord && wordData?.id === selectedWord.id
