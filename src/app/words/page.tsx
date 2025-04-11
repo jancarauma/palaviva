@@ -47,7 +47,7 @@ export default function WordsPage() {
             user: {
               "native-lang": "pt",
               "target-lang": "en",
-              "version": "0.0.1",
+              version: "0.0.1",
               "page-size": 1000,
             },
           });
@@ -99,7 +99,7 @@ export default function WordsPage() {
       year: monthStart.getFullYear(),
       total: monthWords.length,
       ...Object.fromEntries(
-        [1, 2, 3, 4, 5].map((level) => [
+        [/*1,*/ 2, 3, 4, 5].map((level) => [
           `level_${level}`,
           monthWords.filter((w) => w.comfort === level).length,
         ])
@@ -129,37 +129,6 @@ export default function WordsPage() {
     currentPage * PAGE_SIZE,
     (currentPage + 1) * PAGE_SIZE
   );
-
-  const stats = {
-    totalWords: words.length,
-    knownWords: words.filter((w) => w.comfort === 5).length,
-    avgComfort: (
-      words.reduce((acc, w) => acc + w.comfort, 0) / words.length
-    ).toFixed(1),
-    mostFrequent: [...words].sort((a, b) => b.count - a.count)[0]?.name || "-",
-    newThisWeek: words.filter((w) => {
-      const oneWeekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
-      return w.date_created > oneWeekAgo;
-    }).length,
-
-    newThisMonth: words.filter((w) => {
-      const oneMonthAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
-      return w.date_created > oneMonthAgo;
-    }).length,
-
-    newThisYear: words.filter((w) => {
-      const oneYearAgo = Date.now() - 365 * 24 * 60 * 60 * 1000;
-      return w.date_created > oneYearAgo;
-    }).length,
-
-    growthRate:
-      (words.filter((w) => {
-        const lastMonth = Date.now() - 30 * 24 * 60 * 60 * 1000;
-        return w.date_created > lastMonth;
-      }).length /
-        words.length) *
-        100 || 0,
-  };
 
   const comfortData = [1, 2, 3, 4, 5].map((level) => ({
     name: getComfortLevelName(level),
@@ -198,6 +167,73 @@ export default function WordsPage() {
       hoverColor: "#86efac", // bg-green-300
     },
   ];
+
+  const avgComfortValue =
+    words.length > 0
+      ? words.reduce((acc, w) => acc + w.comfort, 0) / words.length
+      : null;
+
+  const getAvgComfortLevel = (avg: number) => {
+    const rounded = Math.round(avg);
+    return (
+      COMFORT_LEVELS.find((level) => level.level === rounded) ||
+      COMFORT_LEVELS[0]
+    );
+  };
+
+  const stats = {
+    totalWords: words.length,
+
+    knownWords: words.filter((w) => w.comfort === 5).length,
+
+    avgComfort: {
+      value: avgComfortValue?.toFixed(1) || "0.0",
+      level: avgComfortValue ? getAvgComfortLevel(avgComfortValue) : null,
+    },
+
+    mostFrequent: [...words].sort((a, b) => b.count - a.count)[0]?.name || "-",
+
+    newThisWeek: words.filter((w) => {
+      const oneWeekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+      return w.comfort === 5 && w.date_created > oneWeekAgo;
+    }).length,
+
+    newThisMonth: words.filter((w) => {
+      const oneMonthAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
+      return w.comfort === 5 && w.date_created > oneMonthAgo;
+    }).length,
+
+    newThisYear: words.filter((w) => {
+      const oneMonthAgo = Date.now() - 365 * 24 * 60 * 60 * 1000;
+      return w.comfort === 5 && w.date_created > oneMonthAgo;
+    }).length,
+
+    growthRate: (() => {
+      const now = Date.now();
+
+      // last 30 days
+      const currentPeriodStart = now - 30 * 24 * 60 * 60 * 1000;
+      const currentKnown = words.filter(
+        (w) => w.comfort === 5 && w.date_created >= currentPeriodStart
+      ).length;
+
+      // 30-60 days ago
+      const previousPeriodStart = now - 60 * 24 * 60 * 60 * 1000;
+      const previousKnown = words.filter(
+        (w) =>
+          w.comfort === 5 &&
+          w.date_created >= previousPeriodStart &&
+          w.date_created < currentPeriodStart
+      ).length;
+
+      // Avoid division by zero
+      if (previousKnown === 0) {
+        return currentKnown > 0 ? 100 : 0; // 100% if there is new learned words, 0% otherwise
+      }
+
+      return ((currentKnown - previousKnown) / previousKnown) * 100;
+    })(),
+  };
 
   const handleSort = (key: keyof IWord) => {
     setSortConfig((prev) => ({
@@ -283,8 +319,29 @@ export default function WordsPage() {
             <div className="text-gray-500 dark:text-gray-300 text-sm">
               Avg Comfort
             </div>
-            <div className="text-2xl font-bold dark:text-white">
-              {stats.avgComfort ?? "---"}
+            <div className="flex items-center gap-2">
+              {stats.avgComfort.level ? (
+                <>
+                  <div
+                    className="w-3 h-3 rounded-full"
+                    style={{
+                      backgroundColor: stats.avgComfort.level.hoverColor,
+                      boxShadow: `0 0 8px ${stats.avgComfort.level.hoverColor}80`,
+                    }}
+                  ></div>
+                  <div className="text-2xl font-bold dark:text-white">
+                    <span className="mr-2">{stats.avgComfort.value}</span>
+                    <span
+                      className="text-sm font-medium"
+                      style={{ color: stats.avgComfort.level.hoverColor }}
+                    >
+                      ({stats.avgComfort.level.name})
+                    </span>
+                  </div>
+                </>
+              ) : (
+                <div className="text-2xl font-bold dark:text-white">---</div>
+              )}
             </div>
           </div>
           <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">

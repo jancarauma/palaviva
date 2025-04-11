@@ -171,7 +171,7 @@ export default function ArticleView({ id }: { id: string }) {
     const text = article.original;
     const tokens = splitText(text);
 
-    // Calcular offsets sincronamente
+    // Calcular offsets
     const offsets: number[] = [];
     let currentPos = 0;
     tokens.forEach((token) => {
@@ -179,12 +179,47 @@ export default function ArticleView({ id }: { id: string }) {
       currentPos += token.length + 1;
     });
     setWordOffsets(offsets);
-    wordOffsetsRef.current = offsets; // Atualiza ref imediatamente
+    wordOffsetsRef.current = offsets;
+
+    // Configuração de idioma igual ao Código 2
+    const langMap: { [key: string]: string } = {
+      'en': 'en-US',
+      'pt': 'pt-BR',
+      'es': 'es-ES',
+      'fr': 'fr-FR'
+    };
+    
+    const targetLang = langMap[article.language.split('-')[0]] || article.language;
+    const synth = window.speechSynthesis;
+    const voices = synth.getVoices();
+
+    // Mesma lógica de seleção de voz do Código 2
+    const preferredVoices = voices.filter(voice => 
+      voice.lang === targetLang || 
+      voice.lang.startsWith(targetLang.split('-')[0])
+    );
 
     const u = new SpeechSynthesisUtterance(text);
-    u.lang = article.language.includes("-")
-      ? article.language
-      : `${article.language}-${article.language.toUpperCase()}`;
+    
+    // Aplicar mesma voz do Código 2
+    if (preferredVoices.length > 0) {
+      u.voice = preferredVoices[0];
+    }
+    
+    // Mesma configuração de idioma e parâmetros
+    u.lang = targetLang;
+    u.rate = 0.9;
+    u.pitch = 1.2;
+
+    switch(targetLang.split('-')[0]) {
+      case 'en':
+        u.rate = 1.1;
+        u.pitch = 1.0;
+        break;
+      case 'pt':
+        u.rate = 0.9;
+        break;
+    }
 
     u.onboundary = (event) => {
       if (event.name === "word") {
