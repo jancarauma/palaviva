@@ -19,7 +19,6 @@ import {
 import { IWord } from "@/lib/db/types";
 import { getComfortColor, getComfortLevelName } from "@/lib/utils";
 import { toast } from "react-hot-toast";
-import { useRouter } from "next/navigation";
 import {
   ChevronLeftIcon,
   MagnifyingGlassIcon,
