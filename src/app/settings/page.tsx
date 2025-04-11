@@ -12,16 +12,16 @@ export interface ISettings {
     user: {
       "native-lang": string;
       "target-lang": string;
-      "trunk-version": string;
+      "version": string;
       "page-size": number;
     };
   }
 
 export default function SettingsPage() {
   const [settings, setSettings] = useState<ISettings['user']>({
-    'native-lang': 'en',
-    'target-lang': 'fr',
-    'trunk-version': '0.0.4',
+    'native-lang': 'pt',
+    'target-lang': 'en',
+    'version': '0.0.1',
     'page-size': 1000
   });
   const [languages, setLanguages] = useState<string[]>([]);
@@ -159,7 +159,7 @@ export default function SettingsPage() {
               </label>
               <input
                 type="text"
-                value={settings['trunk-version']}
+                value={settings['version']}
                 disabled
                 className="w-full p-2 border rounded-md bg-gray-100 dark:bg-gray-600 dark:text-gray-300 cursor-not-allowed"
               />

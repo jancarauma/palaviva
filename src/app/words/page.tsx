@@ -47,7 +47,7 @@ export default function WordsPage() {
             user: {
               "native-lang": "pt",
               "target-lang": "en",
-              "trunk-version": "0.0.1",
+              "version": "0.0.1",
               "page-size": 1000,
             },
           });

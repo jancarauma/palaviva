@@ -49,7 +49,7 @@ export interface ISettings {
   user: {
     "native-lang": string;
     "target-lang": string;
-    "trunk-version": string;
+    "version": string;
     "page-size": number;
   };
 }

@@ -6,18 +6,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { db } from '@/lib/db/schema';
 import { formatDate } from '@/lib/utils';
-
-export interface IArticle {
-  article_id?: number;
-  name: string;
-  source: string;
-  original: string;
-  word_ids: string;
-  language: string;
-  date_created: number;
-  last_opened: number;
-  current_page: number;
-}
+import { IArticle } from '@/lib/db/types';
 
 export default function HomePage() {
   const pathname = usePathname();
@@ -34,15 +23,18 @@ export default function HomePage() {
     const loadSettings = async () => {
       try {
         setLoading(true);
+
+        const { db } = await import('@/lib/db/schema');
         
         // Carregar ou criar configurações padrão
         let settings = await db.settings.get(1);
+
         if (!settings) {
           await db.settings.add({
             user: {
-              "native-lang": "en",
-              "target-lang": "fr",
-              "trunk-version": "0.0.4",
+              "native-lang": "pt",
+              "target-lang": "en",
+              "version": "0.0.1",
               "page-size": 1000
             }
           });

@@ -1,10 +1,10 @@
 // src/app/layout.tsx
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { Suspense } from 'react';
+import { Suspense } from "react";
 import "./globals.css";
 import Loading from "@/components/Loading";
-import DBInitializer from "@/components/DBInitializer";  // <-- importamos aqui
+import DBInitializer from "@/components/DBInitializer"; // <-- importamos aqui
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,12 +28,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <DBInitializer>
-          <Suspense fallback={<Loading />}>
-            {children}
-          </Suspense>
-        </DBInitializer>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+      >
+        <Suspense fallback={<Loading />}>
+          <DBInitializer>{children}</DBInitializer>
+        </Suspense>
       </body>
     </html>
   );

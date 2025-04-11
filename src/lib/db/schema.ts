@@ -206,7 +206,7 @@ class LanguageAppDB extends Dexie {
         user: {
           "native-lang": "pt",
           "target-lang": "en",
-          "trunk-version": "0.0.1",
+          "version": "0.0.1",
           "page-size": 1000
         }
       }),
@@ -278,9 +278,9 @@ export const settingsService = {
   async get(): Promise<ISettings['user']> {
     const settings = await db.settings.get(1);
     return settings?.user || {
-      "native-lang": "en",
-      "target-lang": "fr",
-      "trunk-version": "0.0.1",
+      "native-lang": "pt",
+      "target-lang": "en",
+      "version": "0.0.1",
       "page-size": 1000
     };
   },
@@ -291,11 +291,41 @@ export const settingsService = {
   }
 };
 
-// Initialize the Database
 export async function initializeDB() {
-  if (await db.settings.count() === 0) {
-    await db.delete();
+  try {
+    if (db.isOpen()) {
+      await db.close();
+    }
+
+    if (!(await Dexie.exists(db.name))) {
+      await db.open();
+      await db.seed();
+      return;
+    }
+
     await db.open();
-    await db.seed();    
+
+    if ((await db.settings.count()) === 0 || 
+        (await db.languages.count()) === 0) {
+      await db.delete();
+      await db.open();
+      await db.seed();
+    }
+
+    if (db.verno < latestVersion) {
+      await db.delete();
+      await db.open();
+      await db.seed();
+    }
+
+  } catch (error) {
+    console.error('Database initialization failed:', error);
+    throw error;
+  } finally {
+    if (!db.isOpen()) {
+      await db.open();
+    }
   }
 }
+
+const latestVersion = 7;
