@@ -185,7 +185,7 @@ export default function SettingsPage() {
                 </span>
               </div>
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                Recommended: 300-500 words for optimal learning
+                Pro Tip: 300 words for optimal learning
               </p>
             </div>
 

@@ -337,7 +337,7 @@ export default function WordsPage() {
                   </div>
                 </>
               ) : (
-                <div className="text-2xl font-bold dark:text-white">---</div>
+                <div className="text-2xl font-bold dark:text-white">-</div>
               )}
             </div>
           </div>

@@ -17,6 +17,7 @@ export default function HomePage() {
   const [targetLang, setTargetLang] = useState<string>("");
   const [targetLanguageName, setTargetLanguageName] = useState("");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [updateAvailable, setUpdateAvailable] = useState(false);
 
   const currentView = pathname.split("/").pop() || "article-list";
 
@@ -82,6 +83,52 @@ export default function HomePage() {
 
     loadArticles();
   }, [targetLang]);
+
+  useEffect(() => {
+    if (process.env.NODE_ENV !== 'production') return;
+    if (process.env.NEXT_PUBLIC_VERCEL_ENV !== 'production') return;
+  
+    const checkUpdates = async () => {
+      try {
+        const registration = await navigator.serviceWorker.getRegistration();
+        if (registration) {
+          registration.addEventListener('updatefound', () => {
+            const newWorker = registration.installing;
+            newWorker?.addEventListener('statechange', () => {
+              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                const currentDeployment = process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA;
+                const newDeployment = registration.scope.split('/').pop();
+                
+                if (currentDeployment !== newDeployment) {
+                  setUpdateAvailable(true);
+                }
+              }
+            });
+          });
+          
+          // Check every 5 minutes
+          setInterval(() => registration.update(), 5 * 60 * 1000);
+        }
+      } catch (error) {
+        console.error('Update check failed:', error);
+      }
+    };
+  
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.ready.then(checkUpdates);
+    }
+  }, []);
+
+  const handleUpdateConfirm = () => {
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.ready.then((registration) => {
+        if (registration.waiting) {
+          registration.waiting.postMessage({ type: "SKIP_WAITING" });
+        }
+      });
+    }
+    setUpdateAvailable(false);
+  };
 
   const handleDelete = async (articleId: number) => {
     if (confirm("Are you sure you want to delete this article?")) {
@@ -347,8 +394,8 @@ export default function HomePage() {
                     </h3>
                   </div>
                   <p className="mb-6 text-gray-600 dark:text-gray-300 text-sm max-w-md mx-auto leading-6">
-                    We couldn&apos;t find any articles in {targetLanguageName.toLowerCase()}. You
-                    can either{" "}
+                    We couldn&apos;t find any articles in{" "}
+                    {targetLanguageName.toLowerCase()}. You can either{" "}
                     <span className="inline-flex items-center text-purple-600 dark:text-purple-400 hover:underline cursor-pointer transition-colors">
                       <svg
                         className="w-4 h-4 mr-1"
@@ -426,6 +473,32 @@ export default function HomePage() {
 
         {currentView === "settings" && <div>Settings View Component Here</div>}
       </main>
+
+      {updateAvailable && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg max-w-md w-full">
+            <h3 className="text-lg font-semibold mb-4">Update Available</h3>
+            <p className="mb-4">
+              A new version of the Palaviva is available. Would you like to update
+              now?
+            </p>
+            <div className="flex justify-end space-x-4">
+              <button
+                onClick={() => setUpdateAvailable(false)}
+                className="px-4 py-2 cursor-pointer text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100"
+              >
+                Later
+              </button>
+              <button
+                onClick={handleUpdateConfirm}
+                className="px-4 py-2 rounded cursor-pointer text-white bg-gradient-to-r from-purple-600 to-fuchsia-600 hover:from-purple-700 hover:to-fuchsia-700 dark:from-purple-500 dark:to-fuchsia-500 dark:hover:from-purple-600 dark:hover:to-fuchsia-600 transition-all duration-200 shadow-lg hover:shadow-xl cursor-pointer focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
+              >
+                Update Now
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
