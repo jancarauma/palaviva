@@ -17,6 +17,7 @@ import {
   Legend,
 } from "recharts";
 import { IWord } from "@/lib/db/types";
+import { getComfortColor, getComfortLevelName } from "@/lib/utils";
 
 const PAGE_SIZE = 20;
 
@@ -672,7 +673,7 @@ export default function WordsPage() {
   );
 }
 
-const SortIndicator = ({
+export const SortIndicator = ({
   isActive,
   direction,
 }: {
@@ -684,30 +685,3 @@ const SortIndicator = ({
     {isActive && (direction === "asc" ? "↑" : "↓")}
   </span>
 );
-
-function getComfortLevelName(comfort: number): string {
-  switch (comfort) {
-    case 1:
-      return "Unknown";
-    case 2:
-      return "Hard";
-    case 3:
-      return "Medium";
-    case 4:
-      return "Easy";
-    case 5:
-      return "Known";
-    default:
-      return "Unknown";
-  }
-}
-
-function getComfortColor(level: number): string {
-  return [
-    "bg-red-500",
-    "bg-orange-500",
-    "bg-yellow-500",
-    "bg-green-300",
-    "bg-green-500",
-  ][level - 1];
-}

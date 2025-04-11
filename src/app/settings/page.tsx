@@ -1,28 +1,28 @@
 // app/settings/page.tsx
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { db } from '@/lib/db/schema';
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { db } from "@/lib/db/schema";
 //import { ISettings } from '@/lib/types/models';
 
 // lib/types/models.ts
 export interface ISettings {
-    settings_id?: number;
-    user: {
-      "native-lang": string;
-      "target-lang": string;
-      "version": string;
-      "page-size": number;
-    };
-  }
+  settings_id?: number;
+  user: {
+    "native-lang": string;
+    "target-lang": string;
+    version: string;
+    "page-size": number;
+  };
+}
 
 export default function SettingsPage() {
-  const [settings, setSettings] = useState<ISettings['user']>({
-    'native-lang': 'pt',
-    'target-lang': 'en',
-    'version': '0.0.1',
-    'page-size': 1000
+  const [settings, setSettings] = useState<ISettings["user"]>({
+    "native-lang": "pt",
+    "target-lang": "en",
+    version: "0.0.1",
+    "page-size": 1000,
   });
   const [languages, setLanguages] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -31,7 +31,7 @@ export default function SettingsPage() {
     const loadData = async () => {
       try {
         // Carregar configurações
-        const savedSettings = await db.settings.get(1);        
+        const savedSettings = await db.settings.get(1);
 
         // Carregar idiomas disponíveis
         let langs = await db.languages.toArray();
@@ -46,10 +46,9 @@ export default function SettingsPage() {
         if (savedSettings?.user) {
           setSettings(savedSettings.user);
         }
-        setLanguages(langs.map(l => l.iso_639_1));
-
+        setLanguages(langs.map((l) => l.iso_639_1));
       } catch (error) {
-        console.error('Error loading settings:', error);
+        console.error("Error loading settings:", error);
       } finally {
         setLoading(false);
       }
@@ -58,26 +57,29 @@ export default function SettingsPage() {
     loadData();
   }, []);
 
-  const handleChange = (field: keyof ISettings['user'], value: string | number) => {
-    setSettings(prev => ({
+  const handleChange = (
+    field: keyof ISettings["user"],
+    value: string | number
+  ) => {
+    setSettings((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
   };
 
   const saveSettings = async () => {
-    if (settings['native-lang'] === settings['target-lang']) {
-      alert('Native and target languages must be different!');
+    if (settings["native-lang"] === settings["target-lang"]) {
+      alert("Native and target languages must be different!");
       return;
     }
-    
+
     try {
       await db.settings.update(1, { user: settings });
-      alert('Settings saved successfully!');
+      alert("Settings saved successfully!");
       window.location.reload(); // Força atualização global
     } catch (error) {
-      console.error('Error saving settings:', error);
-      alert('Error saving settings');
+      console.error("Error saving settings:", error);
+      alert("Error saving settings");
     }
   };
 
@@ -93,8 +95,13 @@ export default function SettingsPage() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
       <div className="max-w-4xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-800 dark:text-white">Application Settings</h1>
-          <Link href="/" className="text-blue-600 dark:text-blue-400 hover:underline mt-2 inline-block">
+          <h1 className="text-3xl font-bold text-gray-800 dark:text-white">
+            Application Settings
+          </h1>
+          <Link
+            href="/"
+            className="text-blue-600 dark:text-blue-400 hover:underline mt-2 inline-block"
+          >
             &larr; Back to texts
           </Link>
         </div>
@@ -107,16 +114,16 @@ export default function SettingsPage() {
                 Native Language
               </label>
               <select
-                value={settings['native-lang']}
-                onChange={(e) => handleChange('native-lang', e.target.value)}
+                value={settings["native-lang"]}
+                onChange={(e) => handleChange("native-lang", e.target.value)}
                 className="w-full p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                >
-                {languages.map(lang => (
-                    <option key={lang} value={lang}>
+              >
+                {languages.map((lang) => (
+                  <option key={lang} value={lang}>
                     {lang.toUpperCase()}
-                    </option>
+                  </option>
                 ))}
-                </select>
+              </select>
             </div>
 
             {/* Target Language */}
@@ -125,11 +132,11 @@ export default function SettingsPage() {
                 Target Language
               </label>
               <select
-                value={settings['target-lang']}
-                onChange={(e) => handleChange('target-lang', e.target.value)}
+                value={settings["target-lang"]}
+                onChange={(e) => handleChange("target-lang", e.target.value)}
                 className="w-full p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white"
               >
-                {languages.map(lang => (
+                {languages.map((lang) => (
                   <option key={lang} value={lang}>
                     {lang.toUpperCase()}
                   </option>
@@ -146,8 +153,10 @@ export default function SettingsPage() {
                 type="number"
                 min="100"
                 max="5000"
-                value={settings['page-size']}
-                onChange={(e) => handleChange('page-size', Number(e.target.value))}
+                value={settings["page-size"]}
+                onChange={(e) =>
+                  handleChange("page-size", Number(e.target.value))
+                }
                 className="w-full p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white"
               />
             </div>
@@ -159,7 +168,7 @@ export default function SettingsPage() {
               </label>
               <input
                 type="text"
-                value={settings['version']}
+                value={settings["version"]}
                 disabled
                 className="w-full p-2 border rounded-md bg-gray-100 dark:bg-gray-600 dark:text-gray-300 cursor-not-allowed"
               />

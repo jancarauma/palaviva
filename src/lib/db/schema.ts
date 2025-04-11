@@ -1,6 +1,6 @@
 // src/lib/db/schema.ts
-import Dexie from 'dexie';
-import { IWord, IPhrase, IArticle, ILanguage, ISettings } from './types';
+import Dexie from "dexie";
+import { IWord, IPhrase, IArticle, ILanguage, ISettings } from "./types";
 
 const DEFAULT_ARTICLE_CONTENT = `Almustafa, the chosen and the beloved, who was a dawn unto his own day, had waited twelve years in the city of Orphalese for his ship that was to return and bear him back to the isle of his birth.
 
@@ -85,58 +85,68 @@ class LanguageAppDB extends Dexie {
   settings!: Dexie.Table<ISettings, number>;
 
   constructor() {
-    super('LanguageAppDB');
-    
+    super("LanguageAppDB");
+
     this.version(1).stores({
-      words: '++id, name, slug, comfort, language',
-      phrases: '++id, word_ids, first_word_slug, last_word_slug, language',
-      articles: '++article_id, name, language, date_created',
-      languages: '++id, iso_639_1',
-      settings: '++settings_id'
+      words: "++id, name, slug, comfort, language",
+      phrases: "++id, word_ids, first_word_slug, last_word_slug, language",
+      articles: "++article_id, name, language, date_created",
+      languages: "++id, iso_639_1",
+      settings: "++settings_id",
     });
 
     this.version(2).stores({
-      words: '++id, name, slug, comfort, language, count',      
+      words: "++id, name, slug, comfort, language, count",
     });
 
     this.version(3).stores({
-      languages: '++id, iso_639_1, name',
+      languages: "++id, iso_639_1, name",
     });
 
-    this.version(4).stores({}).upgrade(async tx => {
-      const existing = await tx.table('articles').get(1);
-      if (!existing) {
-        await tx.table('articles').add({
-          name: 'The Prophet',
-          source: 'Khalil Gibran',
-          original: DEFAULT_ARTICLE_CONTENT,
-          word_ids: '',
-          language: 'en',
-          date_created: Date.now(),
-          last_opened: 0,
-          current_page: 0
-        });
-      }
-    });
-
-    this.version(5).stores({
-      words: '++id, name, slug, comfort, language, count, date_created' // date_created
-    }).upgrade(async tx => {
-      await tx.table('words').toCollection().modify(word => {
-        if (!word.date_created) {
-          word.date_created = Date.now();
+    this.version(4)
+      .stores({})
+      .upgrade(async (tx) => {
+        const existing = await tx.table("articles").get(1);
+        if (!existing) {
+          await tx.table("articles").add({
+            name: "The Prophet",
+            source: "Khalil Gibran",
+            original: DEFAULT_ARTICLE_CONTENT,
+            word_ids: "",
+            language: "en",
+            date_created: Date.now(),
+            last_opened: 0,
+            current_page: 0,
+          });
         }
       });
-    });
+
+    this.version(5)
+      .stores({
+        words: "++id, name, slug, comfort, language, count, date_created", // date_created
+      })
+      .upgrade(async (tx) => {
+        await tx
+          .table("words")
+          .toCollection()
+          .modify((word) => {
+            if (!word.date_created) {
+              word.date_created = Date.now();
+            }
+          });
+      });
   }
 
   // Métodos customizados
   async searchWords(query: string, lang: string): Promise<IWord[]> {
     return this.words
-      .where('language').equals(lang)
-      .filter(word => 
-        word.name.toLowerCase().includes(query.toLowerCase()) ||
-        (word.translation?.toLowerCase().includes(query.toLowerCase()) ?? false)
+      .where("language")
+      .equals(lang)
+      .filter(
+        (word) =>
+          word.name.toLowerCase().includes(query.toLowerCase()) ||
+          (word.translation?.toLowerCase().includes(query.toLowerCase()) ??
+            false)
       )
       .toArray();
   }
@@ -144,84 +154,83 @@ class LanguageAppDB extends Dexie {
   // Inicialização do banco
   async seed() {
     return Dexie.Promise.all([
-
       this.languages.bulkAdd([
         {
           name: "French",
           iso_639_1: "fr",
           text_splitting_regex: "[\\p{Z}\\p{P}\\p{S}]+",
-          word_regex: "^\\p{L}+(['’-]\\p{L}+)*$"
+          word_regex: "^\\p{L}+(['’-]\\p{L}+)*$",
         },
         {
           name: "English",
           iso_639_1: "en",
           text_splitting_regex: "[\\p{Z}\\p{P}\\p{S}]+",
-          word_regex: "^\\p{L}+(['’-]\\p{L}+)*$"
+          word_regex: "^\\p{L}+(['’-]\\p{L}+)*$",
         },
         {
           name: "Spanish",
           iso_639_1: "es",
           text_splitting_regex: "[\\p{Z}\\p{P}\\p{S}]+",
-          word_regex: "^\\p{L}+(['’-]\\p{L}+)*$"
+          word_regex: "^\\p{L}+(['’-]\\p{L}+)*$",
         },
         {
           name: "Polish",
           iso_639_1: "pl",
           text_splitting_regex: "[\\p{Z}\\p{P}\\p{S}]+",
-          word_regex: "^\\p{L}+(['’-]\\p{L}+)*$"
+          word_regex: "^\\p{L}+(['’-]\\p{L}+)*$",
         },
         {
           name: "German",
           iso_639_1: "de",
           text_splitting_regex: "[\\p{Z}\\p{P}\\p{S}]+",
-          word_regex: "^\\p{L}+(['’-]\\p{L}+)*$"
+          word_regex: "^\\p{L}+(['’-]\\p{L}+)*$",
         },
         {
           name: "Swedish",
           iso_639_1: "sv",
           text_splitting_regex: "[\\p{Z}\\p{P}\\p{S}]+",
-          word_regex: "^\\p{L}+(['’-]\\p{L}+)*$"
+          word_regex: "^\\p{L}+(['’-]\\p{L}+)*$",
         },
         {
           name: "Dutch",
           iso_639_1: "nl",
           text_splitting_regex: "[\\p{Z}\\p{P}\\p{S}]+",
-          word_regex: "^\\p{L}+(['’-]\\p{L}+)*$"
+          word_regex: "^\\p{L}+(['’-]\\p{L}+)*$",
         },
         {
           name: "Italian",
           iso_639_1: "it",
           text_splitting_regex: "[\\p{Z}\\p{P}\\p{S}]+",
-          word_regex: "^\\p{L}+(['’-]\\p{L}+)*$"
+          word_regex: "^\\p{L}+(['’-]\\p{L}+)*$",
         },
         {
           name: "Português",
           iso_639_1: "pt",
           text_splitting_regex: "[\\p{Z}\\p{P}\\p{S}]+",
-          word_regex: "^\\p{L}+([ãõâêôáéíóúç'-]\\p{L}+)*$"
-        }
+          word_regex: "^\\p{L}+([ãõâêôáéíóúç'-]\\p{L}+)*$",
+        },
       ]),
-      
+
       this.settings.add({
         user: {
           "native-lang": "pt",
           "target-lang": "en",
-          "version": "0.0.1",
-          "page-size": 1000
-        }
+          version: "0.0.1",
+          "page-size": 1000,
+        },
       }),
 
       this.articles.add({
         article_id: 1,
-        name: 'The Prophet',
-        source: 'Khalil Gibran',
+        name: "The Prophet",
+        source: "Khalil Gibran",
         original: DEFAULT_ARTICLE_CONTENT,
-        word_ids: '',
-        language: 'en',
+        word_ids: "",
+        language: "en",
         date_created: Date.now(),
         last_opened: 0,
-        current_page: 0
-      })
+        current_page: 0,
+      }),
     ]);
   }
 }
@@ -230,65 +239,75 @@ export const db = new LanguageAppDB();
 
 // Words operations
 export const wordService = {
-  async updateComfort(slug: string, language: string, comfort: number): Promise<void> {
+  async updateComfort(
+    slug: string,
+    language: string,
+    comfort: number
+  ): Promise<void> {
     await db.words
-      .where(['slug', 'language'])
+      .where(["slug", "language"])
       .equals([slug, language])
       .modify({ comfort });
   },
 
-  async bulkInsert(words: Omit<IWord, 'id'>[]): Promise<void> {
-    const wordsWithDates = words.map(word => ({
+  async bulkInsert(words: Omit<IWord, "id">[]): Promise<void> {
+    const wordsWithDates = words.map((word) => ({
       ...word,
-      date_created: word.date_created || Date.now()
+      date_created: word.date_created || Date.now(),
     }));
     await db.words.bulkAdd(wordsWithDates as IWord[]);
   },
 
   async getForArticle(language: string): Promise<IWord[]> {
     return db.words
-      .where('language').equals(language)
-      .filter(word => !word.is_not_a_word)
+      .where("language")
+      .equals(language)
+      .filter((word) => !word.is_not_a_word)
       .toArray();
-  }
+  },
 };
 
 // Articles operations
 export const articleService = {
-  async insert(article: Omit<IArticle, 'article_id'>): Promise<number> {
+  async insert(article: Omit<IArticle, "article_id">): Promise<number> {
     return db.articles.add(article);
   },
 
   async getRecent(language: string): Promise<IArticle[]> {
     return db.articles
-      .where('language').equals(language)
+      .where("language")
+      .equals(language)
       .reverse()
-      .sortBy('date_created');
+      .sortBy("date_created");
   },
 
-  async attachWords(article: IArticle): Promise<IArticle & { word_data: IWord[] }> {
-    const wordIds = article.word_ids.split('$').map(Number);
-    const words = await db.words.where('id').anyOf(wordIds).toArray();
+  async attachWords(
+    article: IArticle
+  ): Promise<IArticle & { word_data: IWord[] }> {
+    const wordIds = article.word_ids.split("$").map(Number);
+    const words = await db.words.where("id").anyOf(wordIds).toArray();
     return { ...article, word_data: words };
-  }
+  },
 };
 
 // Settings operations
 export const settingsService = {
-  async get(): Promise<ISettings['user']> {
+  async get(): Promise<ISettings["user"]> {
     const settings = await db.settings.get(1);
-    return settings?.user || {
-      "native-lang": "pt",
-      "target-lang": "en",
-      "version": "0.0.1",
-      "page-size": 1000
-    };
+    return (
+      settings?.user || {
+        "native-lang": "pt",
+        "target-lang": "en",
+        version: "0.0.1",
+        "page-size": 1000,
+      }
+    );
   },
 
-  async update(update: Partial<ISettings['user']>): Promise<void> {
+  async update(update: Partial<ISettings["user"]>): Promise<void> {
     const current = await this.get();
     await db.settings.update(1, { user: { ...current, ...update } });
-  }
+  },
 };
 
 export async function initializeDB() {
@@ -305,8 +324,10 @@ export async function initializeDB() {
 
     await db.open();
 
-    if ((await db.settings.count()) === 0 || 
-        (await db.languages.count()) === 0) {
+    if (
+      (await db.settings.count()) === 0 ||
+      (await db.languages.count()) === 0
+    ) {
       await db.delete();
       await db.open();
       await db.seed();
@@ -317,9 +338,8 @@ export async function initializeDB() {
       await db.open();
       await db.seed();
     }
-
   } catch (error) {
-    console.error('Database initialization failed:', error);
+    console.error("Database initialization failed:", error);
     throw error;
   } finally {
     if (!db.isOpen()) {

@@ -1,12 +1,12 @@
 "use client";
 
-//import { useEffect, useState, useRef, Usable } from "react";
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
-//import { use } from "react";
 import { useRouter } from "next/navigation";
 import { db } from "@/lib/db/schema";
 import { IArticle, IWord } from "@/lib/db/types";
+import { PauseIcon, PlayIcon, SpeakerWaveIcon } from "@/components/Icons";
+import { getComfortLevelName } from "@/lib/utils";
 
 export default function ArticleView({ id }: { id: string }) {
   const router = useRouter();
@@ -24,13 +24,7 @@ export default function ArticleView({ id }: { id: string }) {
   }>({ 
     text_splitting_regex: "\\s+", 
     word_regex: "\\p{L}+" 
-  });
-  //const [languageSettings, setLanguageSettings] = useState<{
-  //  text_splitting_regex: string;
-  //  word_regex: string;
-  //} | null>(null);
-  //const unwrappedParams = use(params) as { id: string }
-  //const unwrappedParams = id;
+  });  
 
   const containerRef = useRef<HTMLDivElement>(null);
   const pageSize = 500;
@@ -50,16 +44,13 @@ export default function ArticleView({ id }: { id: string }) {
   const cleanWord = (rawWord: string): string => {
     if (!languageSettings) return "";
 
-    // Passo 1: Normalização Unicode
     const normalized = rawWord.normalize("NFD");
 
-    // Passo 2: Remover símbolos apenas no início/fim
     const trimmed = normalized.replace(
       /^[\p{P}\p{S}\p{N}]+|[\p{P}\p{S}\p{N}]+$/gu,
       ""
     );
 
-    // Passo 3: Validar estrutura interna da palavra
     const isValid = languageSettings.word_regex
       ? new RegExp(languageSettings.word_regex, "u").test(trimmed)
       : trimmed.length > 0;
@@ -70,10 +61,8 @@ export default function ArticleView({ id }: { id: string }) {
 
   useEffect(() => {
     const loadBaseData = async () => {
-      //const art = await db.articles.get(Number(id));
       const [art] = await Promise.all([
         db.articles.get(Number(id)),
-        //db.languages.get(art.language),
       ]);
       
       if (!art) {
@@ -82,17 +71,11 @@ export default function ArticleView({ id }: { id: string }) {
       }
 
       const [lang] = await Promise.all([
-        //db.articles.get(Number(id)),
         db.languages.
         where("iso_639_1").
         equals(art.language).
         first()
       ]);
-
-      //const lang = await db.languages
-      //  .where("iso_639_1")
-      //  .equals(art.language)
-      //  .first();
 
       return { art, lang };
     };
@@ -107,13 +90,6 @@ export default function ArticleView({ id }: { id: string }) {
         word_regex: lang?.word_regex || "",
       });
 
-      // Carregar palavras
-      //const wordIds = art.word_ids.split('$').filter(Boolean).map(Number);
-      //db.words.bulkGet(wordIds).then(words =>
-      //  setWords(words.filter(Boolean) as IWord[])
-      //);
-
-      // Carregar TODAS as palavras do idioma, não só as do artigo
       db.words
         .where("language")
         .equals(art.language)
@@ -121,7 +97,6 @@ export default function ArticleView({ id }: { id: string }) {
         .then((allWords) => {
           setWords(allWords);
 
-          // Atualizar lista de IDs do artigo se necessário
           const articleWordIds = art.word_ids
             .split("$")
             .filter(Boolean)
@@ -141,7 +116,6 @@ export default function ArticleView({ id }: { id: string }) {
   useEffect(() => {
     if (!article || !languageSettings) return;
 
-    // Processar texto apenas uma vez
     const processText = () => {
       const frequencyMap = new Map<string, number>();
       const splitRegex = new RegExp(
@@ -171,7 +145,6 @@ export default function ArticleView({ id }: { id: string }) {
     const text = article.original;
     const tokens = splitText(text);
 
-    // Calcular offsets
     const offsets: number[] = [];
     let currentPos = 0;
     tokens.forEach((token) => {
@@ -181,7 +154,6 @@ export default function ArticleView({ id }: { id: string }) {
     setWordOffsets(offsets);
     wordOffsetsRef.current = offsets;
 
-    // Configuração de idioma igual ao Código 2
     const langMap: { [key: string]: string } = {
       'en': 'en-US',
       'pt': 'pt-BR',
@@ -193,7 +165,6 @@ export default function ArticleView({ id }: { id: string }) {
     const synth = window.speechSynthesis;
     const voices = synth.getVoices();
 
-    // Mesma lógica de seleção de voz do Código 2
     const preferredVoices = voices.filter(voice => 
       voice.lang === targetLang || 
       voice.lang.startsWith(targetLang.split('-')[0])
@@ -201,12 +172,10 @@ export default function ArticleView({ id }: { id: string }) {
 
     const u = new SpeechSynthesisUtterance(text);
     
-    // Aplicar mesma voz do Código 2
     if (preferredVoices.length > 0) {
       u.voice = preferredVoices[0];
     }
     
-    // Mesma configuração de idioma e parâmetros
     u.lang = targetLang;
     u.rate = 0.9;
     u.pitch = 1.2;
@@ -224,7 +193,7 @@ export default function ArticleView({ id }: { id: string }) {
     u.onboundary = (event) => {
       if (event.name === "word") {
         const charIndex = event.charIndex;
-        const offsets = wordOffsetsRef.current; // Usa a ref atualizada
+        const offsets = wordOffsetsRef.current;
 
         let low = 0,
           high = offsets.length - 1;
@@ -244,11 +213,9 @@ export default function ArticleView({ id }: { id: string }) {
           const page = Math.floor(wordIndex / pageSize);
           if (page !== currentPage) {
             setCurrentPage(page);
-            // Forçar rerenderização imediata da nova página
             containerRef.current?.scrollTo({ top: 0, behavior: "auto" });
           }
 
-          // Aguardar atualização do DOM
           setTimeout(() => {
             const elements = containerRef.current?.getElementsByTagName("span");
             if (elements?.[wordIndex - page * pageSize]) {
@@ -283,7 +250,6 @@ export default function ArticleView({ id }: { id: string }) {
       if (speechSynthesis.current.paused) {
         speechSynthesis.current.resume();
       } else {
-        // Reiniciar a reprodução se chegou ao fim
         if (currentWordIndex >= wordsArray.length - 1) {
           setCurrentWordIndex(-1);
         }
@@ -303,7 +269,7 @@ export default function ArticleView({ id }: { id: string }) {
       };
   
       window.speechSynthesis.onvoiceschanged = updateVoices;
-      updateVoices(); // Carrega imediatamente se já disponível
+      updateVoices();
   
       return () => {
         window.speechSynthesis.onvoiceschanged = null;
@@ -331,7 +297,7 @@ export default function ArticleView({ id }: { id: string }) {
     try {
       const wordPattern = languageSettings.word_regex
         ? languageSettings.word_regex.replace(/^\^|\$$/g, "")
-        : "\\p{L}+"; // Fallback padrão
+        : "\\p{L}+"; // Fallback
   
       const tokenRegex = new RegExp(
         `(${wordPattern})|([\\p{P}\\p{S}])`, 
@@ -389,7 +355,6 @@ export default function ArticleView({ id }: { id: string }) {
     );
   }
 
-  // Processamento do texto com regex específica
   const wordsArray = splitText(article.original);
   //const wordsUnique = new Set(
   //  wordsArray.map(word => {
@@ -400,12 +365,11 @@ export default function ArticleView({ id }: { id: string }) {
   const totalWords = wordsArray.length;
   //const totalWords = wordsUnique.size;
   const knownWords = words.filter((w) => w?.comfort >= 4).length;
-  //const knownWords = words.filter(w => w?.comfort >= 4).length; (todas as palavras conhecidas)
+  //const knownWords = words.filter(w => w?.comfort >= 4).length; (all known words)
   const startIdx = currentPage * pageSize;
   const endIdx = startIdx + pageSize;
   const wordsToShow = wordsArray.slice(startIdx, endIdx);
   const totalPages = Math.ceil(totalWords / pageSize);
-  //const wordRegex = new RegExp(languageSettings.word_regex);
 
   const handleWordClick = async (rawWord: string) => {
     if (!languageSettings || !article) return;
@@ -414,7 +378,6 @@ export default function ArticleView({ id }: { id: string }) {
     if (!cleanedWord) return;
 
     try {
-      // Buscar em TODAS as palavras do idioma
       const existingWord = words.find(
         (w) =>
           w.name.localeCompare(cleanedWord, undefined, {
@@ -425,7 +388,6 @@ export default function ArticleView({ id }: { id: string }) {
       if (existingWord) {
         setSelectedWord(existingWord);
 
-        // Verificar se já está vinculada ao artigo
         if (!article.word_ids.includes(existingWord.id!.toString())) {
           const updatedIds = `${article.word_ids}${existingWord.id}$`;
           await db.articles.update(article.article_id!, {
@@ -438,7 +400,7 @@ export default function ArticleView({ id }: { id: string }) {
         return;
       }
 
-      // Criar nova palavra global
+      // Create a new word
       const newWord: IWord = {
         name: cleanedWord,
         slug: cleanedWord.toLowerCase(),
@@ -452,11 +414,9 @@ export default function ArticleView({ id }: { id: string }) {
       const id = await db.words.add(newWord);
       const updatedArticleIds = `${article.word_ids}${id}$`;
 
-      // Atualizar estado global
       setWords((prev) => [...prev, { ...newWord, id }]);
       setSelectedWord({ ...newWord, id });
 
-      // Atualizar artigo e banco
       await db.articles.update(article.article_id!, {
         word_ids: updatedArticleIds,
       });
@@ -473,11 +433,10 @@ export default function ArticleView({ id }: { id: string }) {
   
     const synth = window.speechSynthesis;
     if (!synth) {
-      alert("Text-to-speech não suportado!");
+      alert("Text-to-speech not available!");
       return;
     }
   
-    // Configuração inteligente de idioma
     const langMap: { [key: string]: string } = {
       'en': 'en-US',
       'pt': 'pt-BR',
@@ -487,21 +446,12 @@ export default function ArticleView({ id }: { id: string }) {
   
     const targetLang = langMap[article.language.split('-')[0]] || article.language;
   
-    // Obter vozes disponíveis
     const voices = synth.getVoices();
     
-    // Priorizar vozes em ordem:
     const preferredVoices = voices.filter(voice => 
       voice.lang === targetLang || 
       voice.lang.startsWith(targetLang.split('-')[0])
     );
-    //.sort((a, b) => {
-    //  // Ordenar por qualidade
-    //  if (a.name.includes("Google")) return -1;
-    //  if (a.name.includes("Natural")) return -1;
-    //  if (a.name.includes("WaveNet")) return -1;
-    //  return 1;
-    //});
   
     if (preferredVoices.length === 0) {
       console.info(`Voice not available for ${targetLang}`);
@@ -514,7 +464,6 @@ export default function ArticleView({ id }: { id: string }) {
     utterance.rate = 0.9;
     utterance.pitch = 1.2;
   
-    // Configurações específicas por idioma
     switch(targetLang.split('-')[0]) {
       case 'en':
         utterance.rate = 1.1;
@@ -718,7 +667,7 @@ export default function ArticleView({ id }: { id: string }) {
                           });
                         } catch (error) {
                           console.error("Error saving translation:", error);
-                          // Reverte o estado em caso de erro
+                          
                           setSelectedWord(selectedWord);
                           setWords((prev) =>
                             prev.map((w) =>
@@ -726,18 +675,6 @@ export default function ArticleView({ id }: { id: string }) {
                             )
                           );
                         }
-                        //setSelectedWord(prev => ({...prev!, translation: newTranslation}));
-                        //setWords(prev =>
-                        //    prev.map(w =>
-                        //      w.id === selectedWord.id ? {...w, translation: newTranslation} : w
-                        //    )
-                        //  );
-                        //await db.words.update(selectedWord.id!, { translation: newTranslation });
-                        //setWords(prev =>
-                        //  prev.map(w =>
-                        //    w.id === selectedWord.id ? {...w, translation: newTranslation} : w
-                        //  )
-                        //);
                       }}
                       placeholder="Add translation..."
                       className="w-full p-2 border rounded"
@@ -770,7 +707,7 @@ export default function ArticleView({ id }: { id: string }) {
                               });
                             } catch (error) {
                               console.error("Error updating comfort:", error);
-                              // Reverte em caso de erro
+                              
                               setSelectedWord(selectedWord);
                               setWords((prev) =>
                                 prev.map((w) =>
@@ -778,12 +715,6 @@ export default function ArticleView({ id }: { id: string }) {
                                 )
                               );
                             }
-                            //await db.words.update(selectedWord.id!, { comfort: num });
-                            //setWords(prev =>
-                            //  prev.map(w =>
-                            //    w.id === selectedWord.id ? {...w, comfort: num} : w
-                            //  )
-                            //);
                           }}
                           className={`p-2 text-sm cursor-pointer rounded ${
                             selectedWord.comfort === num
@@ -825,71 +756,3 @@ export default function ArticleView({ id }: { id: string }) {
     </div>
   );
 }
-
-function getComfortLevelName(comfort: number): string {
-  switch (comfort) {
-    case 1:
-      return "Unknown";
-    case 2:
-      return "Hard";
-    case 3:
-      return "Medium";
-    case 4:
-      return "Easy";
-    case 5:
-      return "Known";
-    default:
-      return "Unknown";
-  }
-}
-
-const PlayIcon = ({ className }: { className?: string }) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    fill="none"
-    viewBox="0 0 24 24"
-    strokeWidth={1.5}
-    stroke="currentColor"
-    className={className}
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z"
-    />
-  </svg>
-);
-
-const PauseIcon = ({ className }: { className?: string }) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    fill="none"
-    viewBox="0 0 24 24"
-    strokeWidth={1.5}
-    stroke="currentColor"
-    className={className}
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M15.75 5.25v13.5m-7.5-13.5v13.5"
-    />
-  </svg>
-);
-
-const SpeakerWaveIcon = ({ className }: { className?: string }) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    fill="none"
-    viewBox="0 0 24 24"
-    strokeWidth={1.5}
-    stroke="currentColor"
-    className={className}
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z"
-    />
-  </svg>
-);
