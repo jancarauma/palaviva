@@ -23,7 +23,7 @@ export default function ArticleView({ id }: { id: string }) {
     word_regex: string;
   } | null>(null);
   //const unwrappedParams = use(params) as { id: string }
-  const unwrappedParams = id;
+  //const unwrappedParams = id;
 
   const containerRef = useRef<HTMLDivElement>(null);
   const pageSize = 500;
