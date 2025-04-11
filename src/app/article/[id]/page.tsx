@@ -1,11 +1,15 @@
+// src/app/article/[id]/page.tsx
+
 import ArticleView from './ArticleView';
 
-export default function Page({
-  params,
-}: {
+type PageProps = {
   params: {
     id: string;
   };
-}) {
-  return <ArticleView id={params.id} />;
+  searchParams: Record<string, string | string[] | undefined>;
+};
+
+export default function Page(props: PageProps) {
+  const { id } = props.params;
+  return <ArticleView id={id} />;
 }
