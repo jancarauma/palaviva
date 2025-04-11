@@ -19,7 +19,7 @@ export default function ArticleView({ id }: { id: string }) {
   );
   const [currentPage, setCurrentPage] = useState(0);
   const [selectedWord, setSelectedWord] = useState<IWord | null>(null);
-  const [showMarkAll, setShowMarkAll] = useState(0);
+  //const [showMarkAll, setShowMarkAll] = useState(0);
   const [languageSettings, setLanguageSettings] = useState<{
     text_splitting_regex: string;
     word_regex: string;
@@ -326,21 +326,21 @@ export default function ArticleView({ id }: { id: string }) {
     }
   };
 
-  const markAllKnown = async () => {
-    if (showMarkAll === 0) {
-      setShowMarkAll(1);
-    } else {
-      try {
-        await Promise.all(
-          words.map((word) => db.words.update(word.id!, { comfort: 5 }))
-        );
-        //setWords(prev => prev.map(w => ({ ...w, comfort: 5 })));
-        setShowMarkAll(0);
-      } catch (error) {
-        console.error("Error marking all as known:", error);
-      }
-    }
-  };
+  //const markAllKnown = async () => {
+  //  if (showMarkAll === 0) {
+  //    setShowMarkAll(1);
+  //  } else {
+  //    try {
+  //      await Promise.all(
+  //        words.map((word) => db.words.update(word.id!, { comfort: 5 }))
+  //      );
+  //      //setWords(prev => prev.map(w => ({ ...w, comfort: 5 })));
+  //      setShowMarkAll(0);
+  //    } catch (error) {
+  //      console.error("Error marking all as known:", error);
+  //    }
+  //  }
+  //};
 
   if (!article || !languageSettings) {
     return (
