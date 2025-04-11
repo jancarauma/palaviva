@@ -32,6 +32,7 @@ export interface IArticle {
   date_created: number;
   last_opened: number;
   current_page: number;
+  is_default?: boolean;
 }
 
 export interface ILanguage {
