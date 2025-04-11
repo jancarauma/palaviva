@@ -21,7 +21,14 @@ export default function ArticleView({ id }: { id: string }) {
   const [languageSettings, setLanguageSettings] = useState<{
     text_splitting_regex: string;
     word_regex: string;
-  } | null>(null);
+  }>({ 
+    text_splitting_regex: "\\s+", 
+    word_regex: "\\p{L}+" 
+  });
+  //const [languageSettings, setLanguageSettings] = useState<{
+  //  text_splitting_regex: string;
+  //  word_regex: string;
+  //} | null>(null);
   //const unwrappedParams = use(params) as { id: string }
   //const unwrappedParams = id;
 
@@ -63,16 +70,29 @@ export default function ArticleView({ id }: { id: string }) {
 
   useEffect(() => {
     const loadBaseData = async () => {
-      const art = await db.articles.get(Number(id));
+      //const art = await db.articles.get(Number(id));
+      const [art] = await Promise.all([
+        db.articles.get(Number(id)),
+        //db.languages.get(art.language),
+      ]);
+      
       if (!art) {
         router.push("/");
         return;
       }
 
-      const lang = await db.languages
-        .where("iso_639_1")
-        .equals(art.language)
-        .first();
+      const [lang] = await Promise.all([
+        //db.articles.get(Number(id)),
+        db.languages.
+        where("iso_639_1").
+        equals(art.language).
+        first()
+      ]);
+
+      //const lang = await db.languages
+      //  .where("iso_639_1")
+      //  .equals(art.language)
+      //  .first();
 
       return { art, lang };
     };
@@ -272,23 +292,21 @@ export default function ArticleView({ id }: { id: string }) {
 
   const splitText = (text: string) => {
     if (!languageSettings) return [];
-
+  
     try {
-      // Remove âncoras do word_regex para uso em captura
-      const wordPattern = languageSettings.word_regex.replace(/^\^|\$$/g, "");
-      // Regex para capturar palavras OU pontuações/símbolos individuais
-      const tokenRegex = new RegExp(`(${wordPattern})|([\\p{P}\\p{S}])`, "gui");
-
-      const tokens = text.match(tokenRegex) || [];
-      return tokens.filter((t) => t && t.trim().length > 0);
+      const wordPattern = languageSettings.word_regex
+        ? languageSettings.word_regex.replace(/^\^|\$$/g, "")
+        : "\\p{L}+"; // Fallback padrão
+  
+      const tokenRegex = new RegExp(
+        `(${wordPattern})|([\\p{P}\\p{S}])`, 
+        "gui"
+      );
+  
+      return text.match(tokenRegex) || [];
     } catch (e) {
       console.error("Regex inválida, usando fallback", e);
-      // Fallback para captura básica
-      return (
-        text
-          .match(/(\p{L}+['’-]?\p{L}*)|([\p{P}\p{S}])/giu)
-          ?.filter((t) => t) || []
-      );
+      return text.split(/(\p{L}+)/giu).filter(Boolean);
     }
   };
 
