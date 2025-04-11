@@ -87,7 +87,7 @@ class LanguageAppDB extends Dexie {
   constructor() {
     super('LanguageAppDB');
     
-    this.version(3).stores({
+    this.version(1).stores({
       words: '++id, name, slug, comfort, language',
       phrases: '++id, word_ids, first_word_slug, last_word_slug, language',
       articles: '++article_id, name, language, date_created',
@@ -95,15 +95,15 @@ class LanguageAppDB extends Dexie {
       settings: '++settings_id'
     });
 
-    this.version(4).stores({
+    this.version(2).stores({
       words: '++id, name, slug, comfort, language, count',      
     });
 
-    this.version(5).stores({
+    this.version(3).stores({
       languages: '++id, iso_639_1, name',
     });
 
-    this.version(6).stores({}).upgrade(async tx => {
+    this.version(4).stores({}).upgrade(async tx => {
       const existing = await tx.table('articles').get(1);
       if (!existing) {
         await tx.table('articles').add({
@@ -117,6 +117,16 @@ class LanguageAppDB extends Dexie {
           current_page: 0
         });
       }
+    });
+
+    this.version(5).stores({
+      words: '++id, name, slug, comfort, language, count, date_created' // date_created
+    }).upgrade(async tx => {
+      await tx.table('words').toCollection().modify(word => {
+        if (!word.date_created) {
+          word.date_created = Date.now();
+        }
+      });
     });
   }
 
@@ -218,7 +228,7 @@ class LanguageAppDB extends Dexie {
 
 export const db = new LanguageAppDB();
 
-// Operações com palavras
+// Words operations
 export const wordService = {
   async updateComfort(slug: string, language: string, comfort: number): Promise<void> {
     await db.words
@@ -228,7 +238,11 @@ export const wordService = {
   },
 
   async bulkInsert(words: Omit<IWord, 'id'>[]): Promise<void> {
-    await db.words.bulkAdd(words as IWord[]);
+    const wordsWithDates = words.map(word => ({
+      ...word,
+      date_created: word.date_created || Date.now()
+    }));
+    await db.words.bulkAdd(wordsWithDates as IWord[]);
   },
 
   async getForArticle(language: string): Promise<IWord[]> {
@@ -239,7 +253,7 @@ export const wordService = {
   }
 };
 
-// Operações com artigos
+// Articles operations
 export const articleService = {
   async insert(article: Omit<IArticle, 'article_id'>): Promise<number> {
     return db.articles.add(article);
@@ -259,7 +273,7 @@ export const articleService = {
   }
 };
 
-// Operações com configurações
+// Settings operations
 export const settingsService = {
   async get(): Promise<ISettings['user']> {
     const settings = await db.settings.get(1);
@@ -277,7 +291,7 @@ export const settingsService = {
   }
 };
 
-// Inicialização do banco
+// Initialize the Database
 export async function initializeDB() {
   if (await db.settings.count() === 0) {
     await db.delete();

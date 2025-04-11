@@ -411,6 +411,7 @@ export default function ArticleView({ id }: { id: string }) {
         language: article.language,
         is_not_a_word: false,
         count: wordFrequency.get(cleanedWord) || 0,
+        date_created: Date.now()
       };
 
       const id = await db.words.add(newWord);

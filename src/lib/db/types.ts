@@ -8,6 +8,7 @@ export interface IWord {
   language: string;
   is_not_a_word: boolean;
   count: number;
+  date_created: number;
 }
 
 export interface IPhrase {

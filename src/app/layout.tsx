@@ -17,8 +17,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Langtag v0.0.1",
-  description: "Learn a Language with Text",
+  title: "Palaviva",
+  description: "Learn a Language with Texts",
 };
 
 export default function RootLayout({
