@@ -195,7 +195,7 @@ export default function HomePage() {
                   height={40}
                   className="rounded-lg"
                 />*/}
-                <span className="ml-2 text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent dark:from-blue-400 dark:to-purple-400">
+                <span className="ml-2 text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent dark:from-blue-400 dark:to-purple-400">
                   Palaviva
                 </span>
               </Link>

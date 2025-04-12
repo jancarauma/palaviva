@@ -24,12 +24,29 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  overflow-x: hidden;
+}
+
+body.panel-open {
+  overflow: hidden;
 }
 
 @media (max-width: 768px) {
   .table-container {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
+  }
+}
+
+@media (hover: none) {
+  .overflow-y-auto {
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+@media (pointer: coarse) {
+  [role="dialog"] {
+    touch-action: manipulation;
   }
 }
 

@@ -8,7 +8,9 @@ import { IArticle, IWord } from "@/lib/db/types";
 import { PauseIcon, PlayIcon, SpeakerWaveIcon } from "@/components/Icons";
 import { getComfortLevelName } from "@/lib/utils";
 import { ChevronLeftIcon } from "@heroicons/react/24/outline";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useAnimation } from "framer-motion";
+import { useMediaQuery } from "react-responsive";
+
 
 export default function ArticleView({ id }: { id: string }) {
   const router = useRouter();
@@ -27,6 +29,7 @@ export default function ArticleView({ id }: { id: string }) {
     text_splitting_regex: "\\s+",
     word_regex: "\\p{L}+",
   });
+
 
   const containerRef = useRef<HTMLDivElement>(null);
   const pageSize = 500;
@@ -59,6 +62,37 @@ export default function ArticleView({ id }: { id: string }) {
 
     return isValid ? trimmed.toLowerCase() : "";
   };
+
+  const isMobile = useMediaQuery({ maxWidth: 1023 });
+  const [panelExpanded, setPanelExpanded] = useState(false);
+  const controls = useAnimation();
+  const panelContentRef = useRef<HTMLDivElement>(null);
+
+
+  useEffect(() => {
+    if (selectedWord && isMobile) {
+      document.body.classList.add('panel-open');
+    } else {
+      document.body.classList.remove('panel-open');
+    }
+  }, [selectedWord, isMobile]);
+
+  useEffect(() => {
+    if (selectedWord && isMobile && panelContentRef.current) {
+      panelContentRef.current.focus();
+    }
+  }, [selectedWord, isMobile]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setSelectedWord(null);
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   useEffect(() => {
     const loadBaseData = async () => {
@@ -353,8 +387,8 @@ export default function ArticleView({ id }: { id: string }) {
   const wordsArray = splitText(article.original);
   const wordsUnique = new Set(
     wordsArray.map(word => {
-        const cleanedWord = word.replace(/^[^a-zA-ZÀ-ÿ]+|[^a-zA-ZÀ-ÿ]+$/g, '');
-        return cleanedWord.toLowerCase();
+      const cleanedWord = word.replace(/^[^a-zA-ZÀ-ÿ]+|[^a-zA-ZÀ-ÿ]+$/g, '');
+      return cleanedWord.toLowerCase();
     })
   );
   //const totalWords = wordsArray.length;
@@ -505,7 +539,7 @@ export default function ArticleView({ id }: { id: string }) {
             <div className="flex-1">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Learning Progress: 
+                  Learning Progress:
                 </span>
                 <span className="px-1 text-sm text-gray-500 dark:text-gray-400">
                   {knownWords}/{totalWords} words
@@ -564,11 +598,11 @@ export default function ArticleView({ id }: { id: string }) {
                   const isWord = cleanedWord !== "";
                   const wordData = isWord
                     ? words.find(
-                        (w) =>
-                          w.name.localeCompare(cleanedWord, undefined, {
-                            sensitivity: "base",
-                          }) === 0
-                      )
+                      (w) =>
+                        w.name.localeCompare(cleanedWord, undefined, {
+                          sensitivity: "base",
+                        }) === 0
+                    )
                     : null;
                   const comfort = wordData?.comfort || 0;
 
@@ -579,29 +613,25 @@ export default function ArticleView({ id }: { id: string }) {
                   return (
                     <span
                       key={`${token}-${index}`}
-                      className={`px-1 rounded ${
-                        isWord
-                          ? "cursor-pointer hover:underline hover:bg-gray-100"
-                          : ""
-                      } ${
-                        isCurrentWord && isWord
+                      className={`px-1 rounded ${isWord
+                        ? "cursor-pointer hover:underline hover:bg-gray-100"
+                        : ""
+                        } ${isCurrentWord && isWord
                           ? "bg-orange-100 dark:bg-orange-900/30 scale-105 shadow-md"
                           : ""
-                      } ${
-                        comfort === 5
+                        } ${comfort === 5
                           ? "bg-green-100 dark:bg-green-900/30"
                           : comfort === 4
-                          ? "bg-blue-100 dark:bg-blue-900/30"
-                          : comfort === 3
-                          ? "bg-yellow-100 dark:bg-yellow-900/30"
-                          : comfort === 2
-                          ? "bg-red-100 dark:bg-red-900/30"
-                          : ""
-                      } ${
-                        selectedWord && wordData?.id === selectedWord.id
+                            ? "bg-blue-100 dark:bg-blue-900/30"
+                            : comfort === 3
+                              ? "bg-yellow-100 dark:bg-yellow-900/30"
+                              : comfort === 2
+                                ? "bg-red-100 dark:bg-red-900/30"
+                                : ""
+                        } ${selectedWord && wordData?.id === selectedWord.id
                           ? "ring-2 ring-purple-500 dark:bg-transparent"
                           : ""
-                      }`}
+                        }`}
                       style={{
                         transition: "background-color 50ms ease-in-out",
                       }}
@@ -640,86 +670,115 @@ export default function ArticleView({ id }: { id: string }) {
 
           {/* Translation Sidebar */}
           <AnimatePresence>
-            {selectedWord && (
+            {selectedWord && isMobile && (
               <motion.div
-                initial={{ x: 100, opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                exit={{ x: 100, opacity: 0 }}
-                className="w-full lg:w-96 bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-100 dark:border-gray-700 h-[60vh] lg:h-[80vh] flex flex-col sticky top-6"
-              >
-                <div className="flex justify-between items-center mb-6">
-                  <div className="flex items-center gap-3">
-                    <h3 className="text-xl font-semibold dark:text-gray-100">
-                      {selectedWord.name}
-                    </h3>
+                key="overlay"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                role="presentation"
+                className="fixed inset-0 bg-black/30 dark:bg-black/50 z-40"
+                onClick={() => setSelectedWord(null)}
+              />
+            )}
+          </AnimatePresence>
+          <AnimatePresence>
+            {selectedWord && (
+              <> {isMobile ? (
+                <motion.div
+                  role="dialog"
+                  aria-modal="true"
+                  aria-labelledby="panel-heading"
+                  drag="y"
+                  dragConstraints={{ top: 0, bottom: 0 }}
+                  onDragEnd={(_, { offset, velocity }) => {
+                    const shouldExpand = offset.y < -50 || velocity.y < -100;
+                    const shouldCollapse = offset.y > 50 || velocity.y > 100;
+
+                    if (shouldExpand) {
+                      controls.start("expanded");
+                      setPanelExpanded(true);
+                    } else if (shouldCollapse) {
+                      controls.start("collapsed");
+                      setPanelExpanded(false);
+                    } else {
+                      controls.start(panelExpanded ? "expanded" : "collapsed");
+                    }
+                  }}
+                  animate={controls}
+                  initial={false}
+                  variants={{
+                    expanded: { y: 0 },
+                    collapsed: { y: "20%" },
+                  }}
+                  transition={{
+                    type: "spring",
+                    stiffness: 400,
+                    damping: 40,
+                    mass: 0.5
+                  }}
+                  className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 rounded-t-2xl shadow-2xl border-t border-gray-100 dark:border-gray-700 h-[85vh] max-h-screen flex flex-col z-50 focus:outline-none"
+                  style={{ touchAction: "pan-y" }}
+                  {...(isMobile && {
+                    onClick: (e) => e.stopPropagation()
+                  })}
+                >
+                  <div className="pt-3 pb-2 flex justify-center touch-pan-y">
                     <button
-                      onClick={playPronunciation}
-                      className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors cursor-pointer"
-                      title="Listen"
-                    >
-                      <SpeakerWaveIcon className="w-6 h-6 text-blue-500 dark:text-blue-400" />
-                    </button>
-                  </div>
-                  <button
-                    onClick={() => setSelectedWord(null)}
-                    className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 text-2xl"
-                  >
-                    &times;
-                  </button>
-                </div>
-
-                <div className="space-y-6 flex-1">
-                  <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Translation
-                    </label>
-                    <input
-                      type="text"
-                      value={selectedWord.translation || ""}
-                      onChange={async (e) => {
-                        const newTranslation = e.target.value;
-                        const updatedWord = {
-                          ...selectedWord,
-                          translation: newTranslation,
-                        };
-                        setSelectedWord(updatedWord);
-                        setWords((prev) =>
-                          prev.map((w) =>
-                            w.id === updatedWord.id ? updatedWord : w
-                          )
-                        );
-                        try {
-                          await db.words.update(updatedWord.id!, {
-                            translation: newTranslation,
-                          });
-                        } catch (error) {
-                          console.error("Error saving translation:", error);
-
-                          setSelectedWord(selectedWord);
-                          setWords((prev) =>
-                            prev.map((w) =>
-                              w.id === selectedWord.id ? selectedWord : w
-                            )
-                          );
-                        }
+                      aria-label={panelExpanded ? "Recolher painel" : "Expandir painel"}
+                      aria-expanded={panelExpanded}
+                      className="w-16 h-2 bg-gray-300 dark:bg-gray-600 rounded-full cursor-grab active:cursor-grabbing focus:ring-2 focus:ring-purple-500"
+                      onPointerDown={() => controls.stop()}
+                      onClick={() => {
+                        setPanelExpanded(!panelExpanded);
+                        controls.start(panelExpanded ? "collapsed" : "expanded");
                       }}
-                      placeholder="Add translation..."
-                      className="w-full px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-700 dark:bg-gray-700/50 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                     />
                   </div>
 
-                  <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Comfort Level
-                    </label>
-                    <div className="grid grid-cols-2 gap-3">
-                      {[1, 2, 3, 4, 5].map((num) => (
+                  <div
+                    className="overflow-y-auto px-6 pb-6 flex-1"
+                    tabIndex={-1}
+                    ref={panelContentRef}
+                  >
+                    <div aria-live="polite" className="sr-only">
+                      Painel {panelExpanded ? "expandido" : "recolhido"}
+                    </div>
+                    <div className="flex justify-between items-center mb-6">
+                      <div className="flex items-center gap-3">
+                        <h3 className="text-xl font-semibold dark:text-gray-100">
+                          {selectedWord.name}
+                        </h3>
                         <button
-                          key={num}
-                          onClick={async () => {
+                          onClick={playPronunciation}
+                          className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors cursor-pointer"
+                          title="Listen"
+                        >
+                          <SpeakerWaveIcon className="w-6 h-6 text-blue-500 dark:text-blue-400" />
+                        </button>
+                      </div>
+                      <button
+                        onClick={() => setSelectedWord(null)}
+                        className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 text-2xl"
+                      >
+                        &times;
+                      </button>
+                    </div>
+
+                    <div className="space-y-6 flex-1">
+                      <div className="space-y-2">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                          Translation
+                        </label>
+                        <input
+                          type="text"
+                          value={selectedWord.translation || ""}
+                          onChange={async (e) => {
+                            const newTranslation = e.target.value;
                             const updatedWord = {
                               ...selectedWord,
-                              comfort: num,
+                              translation: newTranslation,
                             };
                             setSelectedWord(updatedWord);
                             setWords((prev) =>
@@ -727,13 +786,12 @@ export default function ArticleView({ id }: { id: string }) {
                                 w.id === updatedWord.id ? updatedWord : w
                               )
                             );
-
                             try {
                               await db.words.update(updatedWord.id!, {
-                                comfort: num,
+                                translation: newTranslation,
                               });
                             } catch (error) {
-                              console.error("Error updating comfort:", error);
+                              console.error("Error saving translation:", error);
 
                               setSelectedWord(selectedWord);
                               setWords((prev) =>
@@ -743,36 +801,207 @@ export default function ArticleView({ id }: { id: string }) {
                               );
                             }
                           }}
-                          className={`p-3 cursor-pointer rounded-lg text-sm font-medium transition-all ${
-                            selectedWord.comfort === num
-                              ? "bg-purple-600 text-white text-black"
-                              : num === 5
-                              ? "bg-green-100 hover:bg-green-900/30  text-black"
-                              : num === 4
-                              ? "bg-blue-100 hover:bg-blue-900/30  text-black"
-                              : num === 3
-                              ? "bg-yellow-100 hover:bg-yellow-900/30  text-black"
-                              : num === 2
-                              ? "bg-red-100 hover:bg-red-900/30  text-black"
-                              : "bg-gray-100 hover:bg-gray-900/30 text-black"
-                          }`}
-                        >
-                          {num} - {getComfortLevelName(num)}
-                        </button>
-                      ))}
+                          placeholder="Add translation..."
+                          className="w-full px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-700 dark:bg-gray-700/50 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                          Comfort Level
+                        </label>
+                        <div className="grid grid-cols-2 gap-3">
+                          {[1, 2, 3, 4, 5].map((num) => (
+                            <button
+                              key={num}
+                              onClick={async () => {
+                                const updatedWord = {
+                                  ...selectedWord,
+                                  comfort: num,
+                                };
+                                setSelectedWord(updatedWord);
+                                setWords((prev) =>
+                                  prev.map((w) =>
+                                    w.id === updatedWord.id ? updatedWord : w
+                                  )
+                                );
+
+                                try {
+                                  await db.words.update(updatedWord.id!, {
+                                    comfort: num,
+                                  });
+                                } catch (error) {
+                                  console.error("Error updating comfort:", error);
+
+                                  setSelectedWord(selectedWord);
+                                  setWords((prev) =>
+                                    prev.map((w) =>
+                                      w.id === selectedWord.id ? selectedWord : w
+                                    )
+                                  );
+                                }
+                              }}
+                              className={`p-3 cursor-pointer rounded-lg text-sm font-medium transition-all ${selectedWord.comfort === num
+                                ? "bg-purple-600 text-white text-black"
+                                : num === 5
+                                  ? "bg-green-100 hover:bg-green-900/30  text-black"
+                                  : num === 4
+                                    ? "bg-blue-100 hover:bg-blue-900/30  text-black"
+                                    : num === 3
+                                      ? "bg-yellow-100 hover:bg-yellow-900/30  text-black"
+                                      : num === 2
+                                        ? "bg-red-100 hover:bg-red-900/30  text-black"
+                                        : "bg-gray-100 hover:bg-gray-900/30 text-black"
+                                }`}
+                            >
+                              {num} - {getComfortLevelName(num)}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/*<div className="flex-1">
+                      <iframe
+                      src={`https://translate.google.com/?sl=${article.language}&tl=en&text=${encodeURIComponent(selectedWord.name)}`}
+                      className="w-full h-48 border rounded mt-4"
+                      title="Google Translate"
+                    />
+                    </div>*/}
                     </div>
                   </div>
+                </motion.div>
+              ) : (
+                <motion.div
+                  initial={{ x: 100, opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  exit={{ x: 100, opacity: 0 }}
+                  className="w-full lg:w-96 bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-100 dark:border-gray-700 h-[60vh] lg:h-[80vh] flex flex-col sticky top-6"
+                >
+                  <div className="flex justify-between items-center mb-6">
+                    <div className="flex items-center gap-3">
+                      <h3 className="text-xl font-semibold dark:text-gray-100">
+                        {selectedWord.name}
+                      </h3>
+                      <button
+                        onClick={playPronunciation}
+                        className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors cursor-pointer"
+                        title="Listen"
+                      >
+                        <SpeakerWaveIcon className="w-6 h-6 text-blue-500 dark:text-blue-400" />
+                      </button>
+                    </div>
+                    <button
+                      onClick={() => setSelectedWord(null)}
+                      className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 text-2xl"
+                    >
+                      &times;
+                    </button>
+                  </div>
 
-                  {/*<div className="flex-1">
+                  <div className="space-y-6 flex-1">
+                    <div className="space-y-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Translation
+                      </label>
+                      <input
+                        type="text"
+                        value={selectedWord.translation || ""}
+                        onChange={async (e) => {
+                          const newTranslation = e.target.value;
+                          const updatedWord = {
+                            ...selectedWord,
+                            translation: newTranslation,
+                          };
+                          setSelectedWord(updatedWord);
+                          setWords((prev) =>
+                            prev.map((w) =>
+                              w.id === updatedWord.id ? updatedWord : w
+                            )
+                          );
+                          try {
+                            await db.words.update(updatedWord.id!, {
+                              translation: newTranslation,
+                            });
+                          } catch (error) {
+                            console.error("Error saving translation:", error);
+
+                            setSelectedWord(selectedWord);
+                            setWords((prev) =>
+                              prev.map((w) =>
+                                w.id === selectedWord.id ? selectedWord : w
+                              )
+                            );
+                          }
+                        }}
+                        placeholder="Add translation..."
+                        className="w-full px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-700 dark:bg-gray-700/50 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Comfort Level
+                      </label>
+                      <div className="grid grid-cols-2 gap-3">
+                        {[1, 2, 3, 4, 5].map((num) => (
+                          <button
+                            key={num}
+                            onClick={async () => {
+                              const updatedWord = {
+                                ...selectedWord,
+                                comfort: num,
+                              };
+                              setSelectedWord(updatedWord);
+                              setWords((prev) =>
+                                prev.map((w) =>
+                                  w.id === updatedWord.id ? updatedWord : w
+                                )
+                              );
+
+                              try {
+                                await db.words.update(updatedWord.id!, {
+                                  comfort: num,
+                                });
+                              } catch (error) {
+                                console.error("Error updating comfort:", error);
+
+                                setSelectedWord(selectedWord);
+                                setWords((prev) =>
+                                  prev.map((w) =>
+                                    w.id === selectedWord.id ? selectedWord : w
+                                  )
+                                );
+                              }
+                            }}
+                            className={`p-3 cursor-pointer rounded-lg text-sm font-medium transition-all ${selectedWord.comfort === num
+                              ? "bg-purple-600 text-white text-black"
+                              : num === 5
+                                ? "bg-green-100 hover:bg-green-900/30  text-black"
+                                : num === 4
+                                  ? "bg-blue-100 hover:bg-blue-900/30  text-black"
+                                  : num === 3
+                                    ? "bg-yellow-100 hover:bg-yellow-900/30  text-black"
+                                    : num === 2
+                                      ? "bg-red-100 hover:bg-red-900/30  text-black"
+                                      : "bg-gray-100 hover:bg-gray-900/30 text-black"
+                              }`}
+                          >
+                            {num} - {getComfortLevelName(num)}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/*<div className="flex-1">
                     <iframe
                       src={`https://translate.google.com/?sl=${article.language}&tl=en&text=${encodeURIComponent(selectedWord.name)}`}
                       className="w-full h-48 border rounded mt-4"
                       title="Google Translate"
                     />
                   </div>*/}
-                </div>
-              </motion.div>
-            )}
+                  </div>
+                </motion.div>
+              )} </>)}
           </AnimatePresence>
         </div>
       </div>
