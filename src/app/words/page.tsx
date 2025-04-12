@@ -102,7 +102,7 @@ export default function WordsPage() {
       year: monthStart.getFullYear(),
       total: monthWords.length,
       ...Object.fromEntries(
-        [/*1,*/ 2, 3, 4, 5].map((level) => [
+        [1, 2, 3, 4, 5].map((level) => [
           `level_${level}`,
           monthWords.filter((w) => w.comfort === level).length,
         ])
@@ -314,7 +314,7 @@ export default function WordsPage() {
           </div>
           <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
             <div className="text-gray-500 dark:text-gray-300 text-sm mb-2 capitalize">
-              Avg Comfort
+              Avg. Comfort
             </div>
             <div className="flex items-center gap-2">
               {stats.avgComfort.level ? (
@@ -327,12 +327,13 @@ export default function WordsPage() {
                     }}
                   ></div>
                   <div className="text-2xl font-bold dark:text-white">
-                    <span className="mr-2">{stats.avgComfort.value}</span>
+                    {/*<span className="mr-2">{stats.avgComfort.value}</span>*/}
                     <span
-                      className="text-sm font-medium"
+                      //className="text-sm font-medium"
+                      className="mr-2"
                       style={{ color: stats.avgComfort.level.hoverColor }}
                     >
-                      ({stats.avgComfort.level.name})
+                      {stats.avgComfort.level.name}
                     </span>
                   </div>
                 </>
@@ -462,20 +463,19 @@ export default function WordsPage() {
                     backgroundColor: "#1f2937",
                     border: "none",
                     borderRadius: "8px",
-                    color: "#fff",
-                    boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
                   }}
                   formatter={(value: number, name: string) => [
                     value,
-                    COMFORT_LEVELS.find((cl) => cl.name === name)?.name || name,
+                    COMFORT_LEVELS.find((cl) => `level_${cl.level}` === name)
+                      ?.name || name,
                   ]}
                 />
                 <Legend
                   formatter={(value: string) =>
-                    COMFORT_LEVELS.find((cl) => cl.name === value)?.name ||
-                    value
+                    COMFORT_LEVELS.find((cl) => `level_${cl.level}` === value)
+                      ?.name || value
                   }
-                  wrapperStyle={{ paddingTop: "10px" }}
+                  wrapperStyle={{ paddingTop: "20px" }}
                 />
               </PieChart>
             </ResponsiveContainer>
@@ -547,7 +547,7 @@ export default function WordsPage() {
                     )
                   )}
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">
-                    Actions
+                    Action
                   </th>
                 </tr>
               </thead>
@@ -566,7 +566,8 @@ export default function WordsPage() {
                           type="text"
                           value={editTranslation}
                           onChange={(e) => setEditTranslation(e.target.value)}
-                          className="border rounded px-2 py-1 dark:bg-gray-600 dark:text-white w-32 md:w-full"
+                          placeholder="Add translation..."
+                          className="w-full px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-700 dark:bg-gray-700/50 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                           onBlur={() => updateTranslation(word.id!)}
                           onKeyPress={(e) =>
                             e.key === "Enter" && updateTranslation(word.id!)
@@ -596,7 +597,7 @@ export default function WordsPage() {
                           onChange={(e) =>
                             updateComfort(word.id!, Number(e.target.value))
                           }
-                          className="border rounded px-2 py-1 dark:bg-gray-600 dark:text-white"
+                          className="border rounded px-2 py-1 dark:bg-gray-600 dark:text-white cursor-pointer"
                           disabled={updating === word.id}
                         >
                           {updating === word.id ? (
@@ -616,7 +617,7 @@ export default function WordsPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-200">
                       <button
-                        className="text-red-500 hover:text-red-700 dark:text-red-400 px-2 py-1 rounded hover:bg-red-50 dark:hover:bg-red-900"
+                        className="text-red-500 hover:text-red-700 dark:text-red-400 px-2 py-1 rounded hover:bg-red-50 dark:hover:bg-red-900 cursor-pointer"
                         onClick={() => {
                           if (
                             confirm(

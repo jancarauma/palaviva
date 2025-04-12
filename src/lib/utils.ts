@@ -28,10 +28,10 @@ export function getComfortLevelName(comfort: number): string {
 
 export function getComfortColor(level: number): string {
   return [
-    "bg-red-500",
-    "bg-orange-500",
-    "bg-yellow-500",
+    "bg-gray-300",
+    "bg-red-300",
+    "bg-yellow-300",
+    "bg-blue-300",
     "bg-green-300",
-    "bg-green-500",
   ][level - 1];
 }

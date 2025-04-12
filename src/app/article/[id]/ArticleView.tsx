@@ -614,22 +614,22 @@ export default function ArticleView({ id }: { id: string }) {
                     <span
                       key={`${token}-${index}`}
                       className={`px-1 rounded ${isWord
-                        ? "cursor-pointer hover:underline hover:bg-gray-100"
+                        ? "cursor-pointer hover:underline hover:bg-gray-100 dark:hover:bg-gray-900"
                         : ""
                         } ${isCurrentWord && isWord
-                          ? "bg-orange-100 dark:bg-orange-900/30 scale-105 shadow-md"
+                          ? "bg-orange-100 dark:bg-orange-900 shadow-md"
                           : ""
                         } ${comfort === 5
-                          ? "bg-green-100 dark:bg-green-900/30"
+                          ? "bg-green-100 dark:bg-green-900"
                           : comfort === 4
-                            ? "bg-blue-100 dark:bg-blue-900/30"
+                            ? "bg-blue-100 dark:bg-blue-900"
                             : comfort === 3
-                              ? "bg-yellow-100 dark:bg-yellow-900/30"
+                              ? "bg-yellow-100 dark:bg-yellow-900"
                               : comfort === 2
-                                ? "bg-red-100 dark:bg-red-900/30"
+                                ? "bg-red-100 dark:bg-red-900"
                                 : ""
                         } ${selectedWord && wordData?.id === selectedWord.id
-                          ? "ring-2 ring-purple-500 dark:bg-transparent"
+                          ? "ring-2 ring-purple-500"
                           : ""
                         }`}
                       style={{
@@ -976,14 +976,14 @@ export default function ArticleView({ id }: { id: string }) {
                             className={`p-3 cursor-pointer rounded-lg text-sm font-medium transition-all ${selectedWord.comfort === num
                               ? "bg-purple-600 text-white text-black"
                               : num === 5
-                                ? "bg-green-100 hover:bg-green-900/30  text-black"
+                                ? "bg-green-100 hover:bg-green-900/30 dark:bg-green-900"
                                 : num === 4
-                                  ? "bg-blue-100 hover:bg-blue-900/30  text-black"
+                                  ? "bg-blue-100 hover:bg-blue-900/30 dark:bg-blue-900"
                                   : num === 3
-                                    ? "bg-yellow-100 hover:bg-yellow-900/30  text-black"
+                                    ? "bg-yellow-100 hover:bg-yellow-900/30 dark:bg-yellow-900"
                                     : num === 2
-                                      ? "bg-red-100 hover:bg-red-900/30  text-black"
-                                      : "bg-gray-100 hover:bg-gray-900/30 text-black"
+                                      ? "bg-red-100 hover:bg-red-900/30 dark:bg-red-900"
+                                      : "bg-gray-100 hover:bg-gray-900/30 dark:bg-gray-900"
                               }`}
                           >
                             {num} - {getComfortLevelName(num)}

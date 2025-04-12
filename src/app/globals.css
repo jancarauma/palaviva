@@ -82,3 +82,15 @@ body.panel-open {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.5; }
 }
+
+.prose {
+  line-height: 1.6;
+  letter-spacing: 0.5px;
+  word-spacing: 0.05em;
+  font-variant-ligatures: normal;
+}
+
+.dark .prose {
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
