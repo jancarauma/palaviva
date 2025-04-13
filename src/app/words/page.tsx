@@ -18,7 +18,7 @@ import {
 } from "recharts";
 import { IWord } from "@/lib/db/types";
 import { getComfortColor, getComfortLevelName } from "@/lib/utils";
-import { toast } from "react-hot-toast";
+import { toast, Toaster } from "react-hot-toast";
 import {
   ChevronLeftIcon,
   MagnifyingGlassIcon,
@@ -291,6 +291,7 @@ export default function WordsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
+      <Toaster position="top-center" toastOptions={{ duration: 3000 }} />
       <div className="max-w-6xl mx-auto">
         <Header />
 

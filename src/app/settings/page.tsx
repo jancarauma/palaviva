@@ -5,8 +5,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { db } from "@/lib/db/schema";
-import { toast } from "react-hot-toast";
-import { ILanguage } from "@/lib/db/types"; // Assuming you have this type
+import { toast, Toaster } from "react-hot-toast";
+import { ILanguage } from "@/lib/db/types"; 
 import { ChevronLeftIcon } from "@heroicons/react/24/outline";
 
 export interface ISettings {
@@ -100,6 +100,7 @@ export default function SettingsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
+      <Toaster position="top-center" toastOptions={{ duration: 3000 }} />
       <div className="max-w-4xl mx-auto">
         <div className="mb-8">
           <div className="flex items-center justify-between mb-6">
@@ -111,7 +112,7 @@ export default function SettingsPage() {
               Back to Texts
             </Link>
           </div>
-          
+
           <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-fuchsia-600 bg-clip-text text-transparent dark:from-purple-400 dark:to-fuchsia-400">
             Application Settings
           </h1>

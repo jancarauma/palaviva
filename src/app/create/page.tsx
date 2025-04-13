@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { db } from "@/lib/db/schema";
 import { useRouter } from "next/navigation";
-import { toast } from "react-hot-toast";
+import { toast, Toaster } from "react-hot-toast";
 import { ChevronLeftIcon } from "@heroicons/react/24/outline";
 
 const countWords = (text: string): number => {
@@ -19,6 +19,7 @@ export default function CreatePage() {
     content: "",
   });
   const [targetLang, setTargetLang] = useState("");
+  const [targetLanguageName, setTargetLanguageName] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [wordCount, setWordCount] = useState(0);
   const [charCount, setCharCount] = useState(0);
@@ -27,10 +28,30 @@ export default function CreatePage() {
   useEffect(() => {
     const loadSettings = async () => {
       try {
-        const settings = await db.settings.get(1);
-        if (settings?.user) {
-          setTargetLang(settings.user["target-lang"] || "");
+        let settings = await db.settings.get(1);
+
+        if (!settings) {
+          await db.settings.add({
+            user: {
+              "native-lang": "pt",
+              "target-lang": "en",
+              version: "0.0.1",
+              "page-size": 1000,
+            },
+          });
+          settings = await db.settings.get(1);
         }
+
+        const langCode = (await settings?.user["target-lang"]) || "en";
+        setTargetLang(langCode);
+
+        const language = await db.languages
+          .where("iso_639_1")
+          .equalsIgnoreCase(langCode)
+          .first();
+
+        setTargetLanguageName(language?.name || "Unknown");
+
       } catch (error) {
         console.error("Error loading settings:", error);
         toast.error("Failed to load language settings");
@@ -77,7 +98,7 @@ export default function CreatePage() {
         last_opened: Date.now(),
         current_page: 0,
         word_count: wordCount,
-        reading_time: Math.ceil(wordCount / 200), // reading timea avg (200 words/min)
+        reading_time: Math.ceil(wordCount / 200),
       };
 
       await db.articles.add(newArticle);
@@ -100,14 +121,52 @@ export default function CreatePage() {
 
   if (isLoadingSettings) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
+        <div className="max-w-4xl mx-auto animate-pulse">
+          <div className="mb-8">
+            <div className="h-6 w-32 bg-gray-200 dark:bg-gray-700 rounded mb-6" />
+            <div className="h-10 w-3/4 bg-gray-200 dark:bg-gray-700 rounded" />
+          </div>
+
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 space-y-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="col-span-2 space-y-6">
+                <div className="md:grid md:grid-cols-2 gap-6 space-y-4">
+                  <div className="h-16 bg-gray-200 dark:bg-gray-700 rounded-lg" />
+                  <div className="h-16 bg-gray-200 dark:bg-gray-700 rounded-lg" />
+                </div>
+                
+                <div className="space-y-4">
+                  <div className="flex justify-between">
+                    <div className="h-6 w-48 bg-gray-200 dark:bg-gray-700 rounded" />
+                    <div className="flex gap-3">
+                      <div className="h-6 w-20 bg-gray-200 dark:bg-gray-700 rounded" />
+                      <div className="h-6 w-24 bg-gray-200 dark:bg-gray-700 rounded" />
+                      <div className="h-6 w-20 bg-gray-200 dark:bg-gray-700 rounded" />
+                    </div>
+                  </div>
+                  <div className="h-64 bg-gray-200 dark:bg-gray-700 rounded-lg" />
+                  <div className="flex justify-between">
+                    <div className="h-4 w-64 bg-gray-200 dark:bg-gray-700 rounded" />
+                    <div className="h-4 w-32 bg-gray-200 dark:bg-gray-700 rounded" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-4">
+              <div className="h-10 w-24 bg-gray-200 dark:bg-gray-700 rounded-lg" />
+              <div className="h-10 w-32 bg-gray-200 dark:bg-gray-700 rounded-lg" />
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
+      <Toaster position="top-center" toastOptions={{ duration: 3000 }} />
       <div className="max-w-4xl mx-auto">
         <div className="mb-8">
           <div className="flex items-center justify-between mb-6">
@@ -169,24 +228,24 @@ export default function CreatePage() {
                 <div className="col-span-2">
                   <div className="flex justify-between items-center mb-2">
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Content
+                      Content in {targetLanguageName}
                       <span className="text-red-500 ml-1">*</span>
                     </label>
                     <div className="text-sm text-gray-500 dark:text-gray-400 flex flex-wrap gap-3">
                       <div className="flex items-center gap-1">
                         <span className="font-medium">{wordCount}</span>
-                        <span className="hidden sm:inline">words</span>
-                        <span className="sm:hidden">words</span>
+                        <span className="hidden sm:inline">words,</span>
+                        <span className="sm:hidden">words,</span>
                       </div>
                       <div className="flex items-center gap-1">
                         <span className="font-medium">{charCount}</span>
-                        <span className="hidden sm:inline">characters</span>
-                        <span className="sm:hidden">characters</span>
+                        <span className="hidden sm:inline">characters,</span>
+                        <span className="sm:hidden">characters,</span>
                       </div>
                       <div className="flex items-center gap-1">
-                        <span className="font-medium">~{Math.ceil(wordCount / 200)}</span>
-                        <span className="hidden sm:inline">min read</span>
-                        <span className="sm:hidden">min read</span>
+                        <span className="font-medium">and ~{Math.ceil(wordCount / 200)}</span>
+                        <span className="hidden sm:inline">min read.</span>
+                        <span className="sm:hidden">min. read.</span>
                       </div>
                     </div>
                   </div>

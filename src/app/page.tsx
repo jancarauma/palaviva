@@ -42,7 +42,7 @@ export default function HomePage() {
           settings = await db.settings.get(1);
         }
 
-        const langCode = (await settings?.user["target-lang"]) || "fr";
+        const langCode = (await settings?.user["target-lang"]) || "en";
         setTargetLang(langCode);
 
         const language = await db.languages
