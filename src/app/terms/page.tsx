@@ -94,7 +94,7 @@ export default function TermsPage() {
               5. Disclaimer of Warranty
             </h2>
             <div className="space-y-2 text-gray-600 dark:text-gray-400">
-              <p>The Service is provided "AS IS" without any warranties. We do not guarantee:</p>
+              <p>The Service is provided &quot;AS IS&quot; without any warranties. We do not guarantee:</p>
               <ul className="list-disc pl-6 space-y-2">
                 <li>Uninterrupted or error-free service</li>
                 <li>Accuracy of language learning content</li>
