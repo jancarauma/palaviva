@@ -107,7 +107,7 @@ export default function AboutPage() {
               Contribute to Palaviva
             </h2>
             <p className="text-gray-600 dark:text-gray-400">
-              We're open source and welcome contributions! Join our community of 
+              We&apos;re open source and welcome contributions! Join our community of 
               developers and language enthusiasts to help improve Palaviva.
             </p>
             <div className="flex gap-4">

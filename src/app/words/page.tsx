@@ -21,6 +21,7 @@ import { getComfortColor, getComfortLevelName } from "@/lib/utils";
 import { toast, Toaster } from "react-hot-toast";
 import {
   ChevronLeftIcon,
+  DocumentChartBarIcon,
   MagnifyingGlassIcon,
 } from "@heroicons/react/24/outline";
 
@@ -79,8 +80,8 @@ export default function WordsPage() {
     return isNaN(value) || !isFinite(value)
       ? "-"
       : formatter
-      ? formatter(value)
-      : value;
+        ? formatter(value)
+        : value;
   }
 
   const timelineData = Array.from({ length: 12 }, (_, i) => {
@@ -638,17 +639,17 @@ export default function WordsPage() {
                     </td>
                   </tr>
                 ))}
-              </tbody>              
+              </tbody>
             </table>
             {filteredWords.length === 0 && (
-                <div className="p-8 text-center">
-                  <div className="text-4xl mb-4">📭</div>
-                  <h3 className="text-xl font-medium dark:text-white">No words found</h3>
-                  <p className="mt-2 text-gray-500 dark:text-gray-400">
+              <div className="p-8 text-center">
+                <div className="text-4xl mb-4">📭</div>
+                <h3 className="text-xl font-medium dark:text-white">No words found</h3>
+                <p className="mt-2 text-gray-500 dark:text-gray-400">
                   Try adjusting your filters or add new words through articles
-                  </p>
-                </div>
-              )}
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Pagination */}
@@ -730,8 +731,11 @@ const Header = () => (
         Back to Texts
       </Link>
     </div>
-    <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-fuchsia-600 bg-clip-text text-transparent">
-      Words
-    </h1>
+    <div className="flex items-center gap-3 mb-6">
+      <DocumentChartBarIcon className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+      <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-fuchsia-600 bg-clip-text text-transparent dark:from-purple-400 dark:to-fuchsia-400">
+        Words
+      </h1>
+    </div>
   </div>
 );

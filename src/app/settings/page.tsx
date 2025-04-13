@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { db } from "@/lib/db/schema";
 import { toast, Toaster } from "react-hot-toast";
 import { ILanguage } from "@/lib/db/types"; 
-import { ChevronLeftIcon } from "@heroicons/react/24/outline";
+import { AdjustmentsHorizontalIcon, ChevronLeftIcon } from "@heroicons/react/24/outline";
 
 export interface ISettings {
   settings_id?: number;
@@ -113,9 +113,12 @@ export default function SettingsPage() {
             </Link>
           </div>
 
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-fuchsia-600 bg-clip-text text-transparent dark:from-purple-400 dark:to-fuchsia-400">
-            Application Settings
-          </h1>
+          <div className="flex items-center gap-3 mb-6">
+            <AdjustmentsHorizontalIcon className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-fuchsia-600 bg-clip-text text-transparent dark:from-purple-400 dark:to-fuchsia-400">
+              Application Settings
+            </h1>
+          </div>
         </div>
 
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-100 dark:border-gray-700">

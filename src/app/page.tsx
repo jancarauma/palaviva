@@ -521,7 +521,6 @@ const Footer = () => (
           <ul className="space-y-2">
             <li><Link href="/getting-started" className="text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 text-sm">Getting Started</Link></li>
             <li><Link href="/best-practices" className="text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 text-sm">Best Practices</Link></li>
-            <li><Link href="/blog" className="text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 text-sm">Learning Blog</Link></li>
           </ul>
         </div>
 
@@ -539,7 +538,6 @@ const Footer = () => (
           <ul className="space-y-2">
             <li><Link href="/help" className="text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 text-sm">Help Center</Link></li>
             <li><Link href="/contact" className="text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 text-sm">Contact Us</Link></li>
-            <li><Link href="/status" className="text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 text-sm">System Status</Link></li>
           </ul>
         </div>
       </div>
@@ -594,7 +592,7 @@ function ArticleItem({
               onDelete(article.article_id!);
             }
           }}
-          className={`text-sm px-3 py-1 rounded-md transition-colors ${
+          className={`text-sm px-3 py-1 rounded-md transition-colors cursor-pointer ${
             confirmDelete
               ? "bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-800 dark:text-red-200"
               : "text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
