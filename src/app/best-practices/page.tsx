@@ -158,11 +158,11 @@ export default function BestPracticesPage() {
                   Expert Recommendation
                 </h3>
                 <p className="text-gray-600 dark:text-gray-400">
-                  "Aim for 98% comprehension in chosen texts. Use the 
+                &quot;Aim for 98% comprehension in chosen texts. Use the 
                   <Link href="/difficulty-selector" className="text-purple-600 dark:text-purple-400 hover:underline mx-1">
                     difficulty selector
                   </Link> 
-                  to find appropriate material. Gradually increase complexity as your skills improve."
+                  to find appropriate material. Gradually increase complexity as your skills improve.&quot;
                 </p>
               </div>
             </div>
