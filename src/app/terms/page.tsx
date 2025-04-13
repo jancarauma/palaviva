@@ -31,7 +31,7 @@ export default function TermsPage() {
 
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-100 dark:border-gray-700 space-y-8">
           <p className="text-gray-600 dark:text-gray-400">
-            By using Palaviva ("the Service"), you agree to be bound by these Terms of Service.
+            By using Palaviva (&quot;the Service&quot;), you agree to be bound by these Terms of Service.
             Please read them carefully before using our language learning platform.
           </p>
 
