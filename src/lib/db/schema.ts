@@ -135,6 +135,39 @@ class LanguageAppDB extends Dexie {
             }
           });
       });
+
+    this.version(6)
+      .stores({
+        articles: "++article_id, name, language, date_created, word_count", // Add word_count to index
+      })
+      .upgrade(async (tx) => {
+        // Migration to calculate word counts for existing articles
+        const articles = await tx.table("articles").toArray();
+        const languages = await tx.table("languages").toArray();
+
+        for (const article of articles) {
+          const lang = languages.find((l) => l.iso_639_1 === article.language);
+          const regex = lang?.text_splitting_regex || "[\\p{Z}\\p{P}\\p{S}]+";
+
+          const wordCount = this.calculateWordCount(article.original, regex);
+          await tx
+            .table("articles")
+            .update(article.article_id!, { word_count: wordCount });
+        }
+      });
+
+    // Update latestVersion constant at the bottom
+    const latestVersion = 7;
+  }
+
+  public calculateWordCount(text: string, regexPattern: string): number {
+    try {
+      const regex = new RegExp(regexPattern, "gu");
+      return text.split(regex).filter((word) => word.trim().length > 0).length;
+    } catch (e) {
+      console.error("Invalid regex pattern, using default split", e);
+      return text.split(/\s+/).filter((word) => word.trim().length > 0).length;
+    }
   }
 
   // Métodos customizados
@@ -230,6 +263,7 @@ class LanguageAppDB extends Dexie {
         date_created: Date.now(),
         last_opened: 0,
         current_page: 0,
+        word_count: db.calculateWordCount(DEFAULT_ARTICLE_CONTENT, "[\\p{Z}\\p{P}\\p{S}]+")
       }),
     ]);
   }
@@ -269,8 +303,21 @@ export const wordService = {
 
 // Articles operations
 export const articleService = {
+  
   async insert(article: Omit<IArticle, "article_id">): Promise<number> {
-    return db.articles.add(article);
+    // Get language-specific regex
+    const lang = await db.languages
+      .where("iso_639_1")
+      .equals(article.language)
+      .first();
+    
+    const regex = lang?.text_splitting_regex || "[\\p{Z}\\p{P}\\p{S}]+";
+    const wordCount = db.calculateWordCount(article.original, regex);
+
+    return db.articles.add({
+      ...article,
+      word_count: wordCount
+    });
   },
 
   async getRecent(language: string): Promise<IArticle[]> {

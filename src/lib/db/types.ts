@@ -34,6 +34,7 @@ export interface IArticle {
   last_opened: number;
   current_page: number;
   is_default?: boolean;
+  word_count: number;
 }
 
 export interface ILanguage {

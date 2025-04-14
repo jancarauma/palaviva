@@ -1,7 +1,7 @@
 /* eslint-disable */
 // src/app/article/[id]/page.tsx
 
-import ArticleView from "./ArticleView";
+import ArticleView from "../../../components/ArticlePage/ArticleView";
 
 export default function Page({
   params,
