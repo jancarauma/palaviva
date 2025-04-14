@@ -44,8 +44,8 @@ export default function HomePage() {
 
         const latestSettings = await db.settings.get(1);
 
-        const langCode = (await latestSettings?.user["target-lang"]) || "en";
-
+        const langCode = latestSettings?.user["target-lang"] || "en";
+      
         setTargetLang(langCode);
 
         const language = await db.languages
@@ -68,8 +68,6 @@ export default function HomePage() {
   {/* Load articles */}
   useEffect(() => {
     const loadArticles = async () => {
-      if (!targetLang) return;
-
       try {
         setLoading(true);
 

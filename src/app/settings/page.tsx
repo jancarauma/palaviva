@@ -214,7 +214,7 @@ export default function SettingsPage() {
                 onClick={() => router.back()}
                 className="px-6 py-2.5 rounded-lg border border-gray-200 dark:border-gray-600 
                          text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/50 
-                         transition-colors"
+                         transition-colors cursor-pointer"
               >
                 Cancel
               </button>
@@ -224,7 +224,7 @@ export default function SettingsPage() {
                 className="px-8 py-2.5 rounded-lg bg-gradient-to-r from-purple-600 to-fuchsia-600 
                          hover:from-purple-700 hover:to-fuchsia-700 text-white font-medium 
                          disabled:opacity-50 disabled:cursor-not-allowed relative transition-all 
-                         shadow-md hover:shadow-lg"
+                         shadow-md hover:shadow-lg cursor-pointer"
               >
                 Save Changes
               </button>

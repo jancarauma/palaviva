@@ -101,9 +101,14 @@ export default function CreatePage() {
         reading_time: Math.ceil(wordCount / 200),
       };
 
+      await db.settings.update(1, {
+        "user.target-lang": newArticle.language
+      });
+
       await db.articles.add(newArticle);
 
       toast.success("Text created successfully!");
+      await new Promise(resolve => setTimeout(resolve, 3000));
       router.push("/");
     } catch (error) {
       console.error("Error creating article:", error);
@@ -182,7 +187,7 @@ export default function CreatePage() {
           <div className="flex items-center gap-3 mb-6">
             <DocumentTextIcon className="w-8 h-8 text-purple-600 dark:text-purple-400" />
             <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-fuchsia-600 bg-clip-text text-transparent dark:from-purple-400 dark:to-fuchsia-400">
-              Create New Text
+              Create New Text in {targetLanguageName}
             </h1>
           </div>
         </div>
@@ -231,7 +236,7 @@ export default function CreatePage() {
                 <div className="col-span-2">
                   <div className="flex justify-between items-center mb-2">
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Content in {targetLanguageName}
+                      Content
                       <span className="text-red-500 ml-1">*</span>
                     </label>
                     <div className="text-sm text-gray-500 dark:text-gray-400 flex flex-wrap gap-3">
