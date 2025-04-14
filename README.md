@@ -4,9 +4,10 @@
 
 It allows users to import or load articles and any text content for study, classify vocabulary by comfort level, track learning statistics and progress over time, and leverage synchronized text-to-speech for immersive pronunciation practice.
 
-![image](https://github.com/user-attachments/assets/147180da-8aa6-4a21-9b32-ae95b782f420)
-
 > **Note:** This tool is still under active development and may contain bugs or incomplete features. Contributions, feedback, and suggestions are welcome to help improve the project.
+
+![image](https://github.com/user-attachments/assets/012d603b-818b-4550-ab39-587b5a265246)
+![image](https://github.com/user-attachments/assets/e4a3babd-fd89-450d-a54b-77bd54b39509)
 
 ## Features
 
