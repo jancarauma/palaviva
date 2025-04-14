@@ -168,12 +168,12 @@ export default function ArticleView({ id }: { id: string }) {
     wordOffsetsRef.current = offsets;
 
     // Configure utterance
-    const langKey = article.language.split("-")[0];
+    const langKey = article.language.split("-")[0] || "en";
     const targetLang = LANG_MAP[langKey] || article.language;
     const utter = new SpeechSynthesisUtterance(article.original);
     utter.lang = targetLang;
-    utter.rate = langKey === "en" ? 0.85 : 0.9;
-    utter.pitch = langKey === "en" ? 1.15 : 1.2;
+    utter.rate = langKey === "en" ? 0.89 : 0.9;
+    utter.pitch = langKey === "en" ? 1.19 : 1.2;
 
     utter.onboundary = evt => {
       if (evt.name === "word") {
@@ -310,8 +310,8 @@ export default function ArticleView({ id }: { id: string }) {
     const utt = new SpeechSynthesisUtterance(selectedWord.name);
     if (preferred) utt.voice = preferred;
     utt.lang = targetLang;
-    utt.rate = langKey === "en" ? 1.1 : 0.9;
-    utt.pitch = langKey === "en" ? 1.0 : 1.2;
+    utt.rate = langKey === "en" ? 0.89 : 0.9;
+    utt.pitch = langKey === "en" ? 1.19 : 1.2;
     speechSynthesisRef.current.cancel();
     speechSynthesisRef.current.speak(utt);
   };
