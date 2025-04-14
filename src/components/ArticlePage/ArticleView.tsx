@@ -52,6 +52,7 @@ export default function ArticleView({ id }: { id: string }) {
   const [article, setArticle] = useState<IArticle | null>(null);
   const [words, setWords] = useState<IWord[]>([]);
   const [wordFrequency, setWordFrequency] = useState<Map<string, number>>(new Map());
+  const [userNativeLang, setUserNativeLang] = useState("");
   const [languageSettings, setLanguageSettings] = useState<{ text_splitting_regex: string; word_regex: string }>({
     text_splitting_regex: "\\s+",
     word_regex: "\\p{L}+",
@@ -114,12 +115,20 @@ export default function ArticleView({ id }: { id: string }) {
   // Load article, language settings, and words from IndexedDB
   useEffect(() => {
     const loadData = async () => {
+
+      const latestSettings = await db.settings.get(1);
+      if (latestSettings) {
+        setUserNativeLang(latestSettings?.user["native-lang"] || "pt");
+      }
+      
       const art = await db.articles.get(Number(id));
+      
       if (!art) {
         router.push("/");
         return;
       }
-      const lang = await db.languages.where("iso_639_1").equals(art.language).first();
+      
+      const lang = await db.languages.where("iso_639_1").equals(art.language).first();      
 
       setArticle(art);
       setLanguageSettings({
@@ -219,9 +228,10 @@ export default function ArticleView({ id }: { id: string }) {
 
   // Fetch translation suggestions when a word is selected
   useEffect(() => {
-    if (!selectedWord) return;
+    if (!selectedWord || !article) return;
+    const targetLang = article.language.split("-")[0] || "en";
     setLoadingSuggestions(true);
-    getTranslationSuggestions(selectedWord.name, "en", "pt")
+    getTranslationSuggestions(selectedWord.name, targetLang, userNativeLang)
       .then(setSuggestions)
       .catch(console.error)
       .finally(() => setLoadingSuggestions(false));
