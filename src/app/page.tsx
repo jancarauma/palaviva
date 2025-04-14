@@ -29,11 +29,9 @@ export default function HomePage() {
       try {
         setLoading(true);
 
-        const { db } = await import("@/lib/db/schema");
+        const refreshedSettings = await db.settings.get(1);      
 
-        let settings = await db.settings.get(1);
-
-        if (!settings) {
+        if (!refreshedSettings) {
           await db.settings.add({
             user: {
               "native-lang": "pt",
@@ -42,10 +40,12 @@ export default function HomePage() {
               "page-size": 1000,
             },
           });
-          settings = await db.settings.get(1);
         }
 
-        const langCode = (await settings?.user["target-lang"]) || "en";
+        const latestSettings = await db.settings.get(1);
+
+        const langCode = (await latestSettings?.user["target-lang"]) || "en";
+
         setTargetLang(langCode);
 
         const language = await db.languages
@@ -54,6 +54,7 @@ export default function HomePage() {
           .first();
 
         setTargetLanguageName(language?.name || "Unknow");
+
       } catch (error) {
         console.error("Error loading settings:", error);
       } finally {
@@ -71,13 +72,22 @@ export default function HomePage() {
 
       try {
         setLoading(true);
+
+        const currentSettings = await db.settings.get(1);
+        const currentLang = currentSettings?.user["target-lang"] || "en";
+
+        if (currentLang !== targetLang) {
+          setTargetLang(currentLang);
+        }
+
         const articles = await db.articles
           .where("language")
-          .equals(targetLang)
+          .equals(currentLang)
           .reverse()
           .sortBy("date_created");
 
         setArticles(articles);
+
       } catch (error) {
         console.error("Error loading articles:", error);
       } finally {
