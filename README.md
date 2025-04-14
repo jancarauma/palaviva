@@ -6,7 +6,8 @@ It allows users to import or load articles and any text content for study, class
 
 > **Note:** This tool is still under active development and may contain bugs or incomplete features. Contributions, feedback, and suggestions are welcome to help improve the project.
 
-![image](https://github.com/user-attachments/assets/012d603b-818b-4550-ab39-587b5a265246)
+![image](https://github.com/user-attachments/assets/9fa855df-c65f-430d-8794-ff818b45b8ab)
+
 ![image](https://github.com/user-attachments/assets/e4a3babd-fd89-450d-a54b-77bd54b39509)
 
 ## Features
