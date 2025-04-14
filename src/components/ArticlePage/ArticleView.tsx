@@ -168,9 +168,19 @@ export default function ArticleView({ id }: { id: string }) {
     wordOffsetsRef.current = offsets;
 
     // Configure utterance
-    const langKey = article.language.split("-")[0] || "en";
-    const targetLang = LANG_MAP[langKey] || article.language;
+    const langKey = article.language.split("-")[0] || article.language;
+    const targetLang = LANG_MAP[langKey] || article.language;        
+    const synth = window.speechSynthesis;
+    const voices = synth.getVoices();       
+    const preferredVoices = voices.filter(
+      (voice) =>
+        voice.lang === targetLang ||
+        voice.lang.startsWith(targetLang.split("-")[0])
+    );
     const utter = new SpeechSynthesisUtterance(article.original);
+    if (preferredVoices.length > 0) {
+      utter.voice = preferredVoices[0];
+    }
     utter.lang = targetLang;
     utter.rate = langKey === "en" ? 0.89 : 0.9;
     utter.pitch = langKey === "en" ? 1.19 : 1.2;
