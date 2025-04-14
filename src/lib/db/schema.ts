@@ -155,9 +155,6 @@ class LanguageAppDB extends Dexie {
             .update(article.article_id!, { word_count: wordCount });
         }
       });
-
-    // Update latestVersion constant at the bottom
-    const latestVersion = 7;
   }
 
   public calculateWordCount(text: string, regexPattern: string): number {

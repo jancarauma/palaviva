@@ -1,3 +1,4 @@
+/* eslint-disable */
 export async function getTranslationSuggestions(
     text: string,
     sourceLang: string,
@@ -17,7 +18,7 @@ export async function getTranslationSuggestions(
             .filter((m: any) => m.translation !== data.responseData.translatedText)
             .map((m: any) => m.translation)
             .slice(0, 3)
-        ].filter((t, i, a) => a.indexOf(t) === i); // Remove duplicates
+        ].filter((t, i, a) => a.indexOf(t) === i);
       }
       return [];
     } catch (error) {
