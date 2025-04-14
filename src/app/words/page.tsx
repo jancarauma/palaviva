@@ -28,6 +28,7 @@ import {
 const PAGE_SIZE = 20;
 
 export default function WordsPage() {
+  const [targetLanguageName, setTargetLanguageName] = useState("");
   const [words, setWords] = useState<IWord[]>([]);
   const [loading, setLoading] = useState(true);
   const [sortConfig, setSortConfig] = useState<{
@@ -60,6 +61,12 @@ export default function WordsPage() {
 
         const targetLang = settings?.user?.["target-lang"] || "en";
 
+        const language = await db.languages
+          .where("iso_639_1")
+          .equalsIgnoreCase(targetLang)
+          .first();
+        setTargetLanguageName(language?.name || "Unknown");
+
         const words = await db.words
           .where("language")
           .equals(targetLang)
@@ -80,8 +87,8 @@ export default function WordsPage() {
     return isNaN(value) || !isFinite(value)
       ? "-"
       : formatter
-        ? formatter(value)
-        : value;
+      ? formatter(value)
+      : value;
   }
 
   const timelineData = Array.from({ length: 12 }, (_, i) => {
@@ -294,7 +301,23 @@ export default function WordsPage() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
       <Toaster position="top-center" toastOptions={{ duration: 3000 }} />
       <div className="max-w-6xl mx-auto">
-        <Header />
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-6">
+            <Link
+              href="/"
+              className="inline-flex items-center text-purple-600 dark:text-purple-400 hover:text-purple-700"
+            >
+              <ChevronLeftIcon className="w-5 h-5 mr-2" />
+              Back to Texts
+            </Link>
+          </div>
+          <div className="flex items-center gap-3 mb-6">
+            <DocumentChartBarIcon className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-fuchsia-600 bg-clip-text text-transparent dark:from-purple-400 dark:to-fuchsia-400">
+              Words in {targetLanguageName}
+            </h1>
+          </div>
+        </div>
 
         {/* Statistics Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -644,7 +667,9 @@ export default function WordsPage() {
             {filteredWords.length === 0 && (
               <div className="p-8 text-center">
                 <div className="text-4xl mb-4">📭</div>
-                <h3 className="text-xl font-medium dark:text-white">No words found</h3>
+                <h3 className="text-xl font-medium dark:text-white">
+                  No words found
+                </h3>
                 <p className="mt-2 text-gray-500 dark:text-gray-400">
                   Try adjusting your filters or add new words through articles
                 </p>
@@ -716,26 +741,6 @@ const LoadingSkeleton = () => (
         ))}
       </div>
       <div className="h-96 bg-gray-100 dark:bg-gray-800 rounded-xl animate-pulse" />
-    </div>
-  </div>
-);
-
-const Header = () => (
-  <div className="mb-8">
-    <div className="flex items-center justify-between mb-6">
-      <Link
-        href="/"
-        className="inline-flex items-center text-purple-600 dark:text-purple-400 hover:text-purple-700"
-      >
-        <ChevronLeftIcon className="w-5 h-5 mr-2" />
-        Back to Texts
-      </Link>
-    </div>
-    <div className="flex items-center gap-3 mb-6">
-      <DocumentChartBarIcon className="w-8 h-8 text-purple-600 dark:text-purple-400" />
-      <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-fuchsia-600 bg-clip-text text-transparent dark:from-purple-400 dark:to-fuchsia-400">
-        Words
-      </h1>
     </div>
   </div>
 );

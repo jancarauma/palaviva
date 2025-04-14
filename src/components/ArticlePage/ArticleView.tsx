@@ -20,8 +20,6 @@ import { PaginationControls } from "@/components/ArticlePage/PaginationControls"
 // Constants
 // -----------------------------------------------------------------------------
 
-const PAGE_SIZE = 300; // <-- todo: get it from settings in DB
-
 const LANG_MAP: Record<string, string> = {
   en: "en-US",
   pt: "pt-BR",
@@ -50,10 +48,16 @@ export default function ArticleView({ id }: { id: string }) {
   // State
   // ---------------------------------------------------------------------------
   const [article, setArticle] = useState<IArticle | null>(null);
+  const [pageSize, setPageSize] = useState(300);
   const [words, setWords] = useState<IWord[]>([]);
-  const [wordFrequency, setWordFrequency] = useState<Map<string, number>>(new Map());
+  const [wordFrequency, setWordFrequency] = useState<Map<string, number>>(
+    new Map()
+  );
   const [userNativeLang, setUserNativeLang] = useState("");
-  const [languageSettings, setLanguageSettings] = useState<{ text_splitting_regex: string; word_regex: string }>({
+  const [languageSettings, setLanguageSettings] = useState<{
+    text_splitting_regex: string;
+    word_regex: string;
+  }>({
     text_splitting_regex: "\\s+",
     word_regex: "\\p{L}+",
   });
@@ -61,7 +65,9 @@ export default function ArticleView({ id }: { id: string }) {
   const [selectedWord, setSelectedWord] = useState<IWord | null>(null);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [currentWordIndex, setCurrentWordIndex] = useState<number>(-1);
-  const [utterance, setUtterance] = useState<SpeechSynthesisUtterance | null>(null);
+  const [utterance, setUtterance] = useState<SpeechSynthesisUtterance | null>(
+    null
+  );
   const [wordOffsets, setWordOffsets] = useState<number[]>([]);
   const [voicesLoaded, setVoicesLoaded] = useState<boolean>(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
@@ -83,8 +89,13 @@ export default function ArticleView({ id }: { id: string }) {
     (raw: string): string => {
       const { word_regex } = languageSettings;
       const normalized = raw.normalize("NFD");
-      const trimmed = normalized.replace(/^[\p{P}\p{S}\p{N}]+|[\p{P}\p{S}\p{N}]+$/gu, "");
-      const isValid = word_regex ? new RegExp(word_regex, "u").test(trimmed) : trimmed.length > 0;
+      const trimmed = normalized.replace(
+        /^[\p{P}\p{S}\p{N}]+|[\p{P}\p{S}\p{N}]+$/gu,
+        ""
+      );
+      const isValid = word_regex
+        ? new RegExp(word_regex, "u").test(trimmed)
+        : trimmed.length > 0;
       return isValid ? trimmed.toLowerCase() : "";
     },
     [languageSettings]
@@ -115,20 +126,23 @@ export default function ArticleView({ id }: { id: string }) {
   // Load article, language settings, and words from IndexedDB
   useEffect(() => {
     const loadData = async () => {
-
       const latestSettings = await db.settings.get(1);
       if (latestSettings) {
         setUserNativeLang(latestSettings?.user["native-lang"] || "pt");
+        setPageSize(latestSettings?.user["page-size"] || 300);
       }
-      
+
       const art = await db.articles.get(Number(id));
-      
+
       if (!art) {
         router.push("/");
         return;
       }
-      
-      const lang = await db.languages.where("iso_639_1").equals(art.language).first();      
+
+      const lang = await db.languages
+        .where("iso_639_1")
+        .equals(art.language)
+        .first();
 
       setArticle(art);
       setLanguageSettings({
@@ -136,12 +150,17 @@ export default function ArticleView({ id }: { id: string }) {
         word_regex: lang?.word_regex || "",
       });
 
-      const allWords = await db.words.where("language").equals(art.language).toArray();
+      const allWords = await db.words
+        .where("language")
+        .equals(art.language)
+        .toArray();
       setWords(allWords);
 
       // Sync word_ids in article if out of date
       const storedIds = art.word_ids.split("$").filter(Boolean).map(Number);
-      const validIds = allWords.filter(w => storedIds.includes(w.id!)).map(w => w.id!.toString());
+      const validIds = allWords
+        .filter((w) => storedIds.includes(w.id!))
+        .map((w) => w.id!.toString());
       const newIds = validIds.join("$");
       if (newIds !== art.word_ids) {
         await db.articles.update(art.article_id!, { word_ids: newIds });
@@ -156,7 +175,7 @@ export default function ArticleView({ id }: { id: string }) {
     if (!article) return;
     const freq = new Map<string, number>();
     const splitRegex = new RegExp(languageSettings.text_splitting_regex, "gu");
-    article.original.split(splitRegex).forEach(raw => {
+    article.original.split(splitRegex).forEach((raw) => {
       const w = cleanWord(raw);
       if (w) freq.set(w, (freq.get(w) || 0) + 1);
     });
@@ -169,7 +188,7 @@ export default function ArticleView({ id }: { id: string }) {
     const tokens = splitText(article.original);
     const offsets: number[] = [];
     let pos = 0;
-    tokens.forEach(tok => {
+    tokens.forEach((tok) => {
       offsets.push(pos);
       pos += tok.length + 1;
     });
@@ -178,9 +197,9 @@ export default function ArticleView({ id }: { id: string }) {
 
     // Configure utterance
     const langKey = article.language.split("-")[0] || article.language;
-    const targetLang = LANG_MAP[langKey] || article.language;        
+    const targetLang = LANG_MAP[langKey] || article.language;
     const synth = window.speechSynthesis;
-    const voices = synth.getVoices();       
+    const voices = synth.getVoices();
     const preferredVoices = voices.filter(
       (voice) =>
         voice.lang === targetLang ||
@@ -194,9 +213,11 @@ export default function ArticleView({ id }: { id: string }) {
     utter.rate = langKey === "en" ? 0.89 : 0.9;
     utter.pitch = langKey === "en" ? 1.19 : 1.2;
 
-    utter.onboundary = evt => {
+    utter.onboundary = (evt) => {
       if (evt.name === "word") {
-        const idx = wordOffsetsRef.current.findIndex((off, i, arr) => arr[i + 1] > evt.charIndex);
+        const idx = wordOffsetsRef.current.findIndex(
+          (off, i, arr) => arr[i + 1] > evt.charIndex
+        );
         if (idx >= 0) setCurrentWordIndex(idx);
       }
     };
@@ -216,7 +237,8 @@ export default function ArticleView({ id }: { id: string }) {
 
   // Handle Escape key to close panel
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setSelectedWord(null);
+    const onKey = (e: KeyboardEvent) =>
+      e.key === "Escape" && setSelectedWord(null);
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, []);
@@ -246,7 +268,9 @@ export default function ArticleView({ id }: { id: string }) {
     };
     window.speechSynthesis.onvoiceschanged = updateVoices;
     updateVoices();
-    return () => { window.speechSynthesis.onvoiceschanged = null; };
+    return () => {
+      window.speechSynthesis.onvoiceschanged = null;
+    };
   }, []);
 
   // ---------------------------------------------------------------------------
@@ -273,7 +297,7 @@ export default function ArticleView({ id }: { id: string }) {
   const handlePageChange = async (direction: "prev" | "next") => {
     if (!article) return;
     const tokens = splitText(article.original);
-    const total = Math.ceil(tokens.length / PAGE_SIZE);
+    const total = Math.ceil(tokens.length / pageSize);
     const nextPage = direction === "next" ? currentPage + 1 : currentPage - 1;
     if (nextPage >= 0 && nextPage < total) {
       await db.articles.update(article.article_id!, { current_page: nextPage });
@@ -289,7 +313,8 @@ export default function ArticleView({ id }: { id: string }) {
     if (!cleaned) return;
 
     const existing = words.find(
-      w => w.name.localeCompare(cleaned, undefined, { sensitivity: "base" }) === 0
+      (w) =>
+        w.name.localeCompare(cleaned, undefined, { sensitivity: "base" }) === 0
     );
 
     if (existing) {
@@ -314,7 +339,7 @@ export default function ArticleView({ id }: { id: string }) {
     };
     const newId = await db.words.add(newWord);
     const updatedIds = `${article.word_ids}${newId}$`;
-    setWords(prev => [...prev, { ...newWord, id: newId }]);
+    setWords((prev) => [...prev, { ...newWord, id: newId }]);
     setSelectedWord({ ...newWord, id: newId });
     await db.articles.update(article.article_id!, { word_ids: updatedIds });
     setArticle({ ...article, word_ids: updatedIds });
@@ -326,7 +351,7 @@ export default function ArticleView({ id }: { id: string }) {
     const langKey = article?.language.split("-")[0] || "en";
     const targetLang = LANG_MAP[langKey] || article!.language;
     const voices = speechSynthesisRef.current.getVoices();
-    const preferred = voices.find(v => v.lang.startsWith(targetLang));
+    const preferred = voices.find((v) => v.lang.startsWith(targetLang));
     const utt = new SpeechSynthesisUtterance(selectedWord.name);
     if (preferred) utt.voice = preferred;
     utt.lang = targetLang;
@@ -355,11 +380,10 @@ export default function ArticleView({ id }: { id: string }) {
   const totalWords = wordsUnique.size;
   //const knownWords = words.filter((w) => w?.comfort >= 4).length;
   const knownWords = words.filter((w) => w?.comfort >= 4).length; //(all known words)
-  const startIdx = currentPage * PAGE_SIZE;
-  const endIdx = startIdx + PAGE_SIZE;
+  const startIdx = currentPage * pageSize;
+  const endIdx = startIdx + pageSize;
   const wordsToShow = wordsArray.slice(startIdx, endIdx);
-  const totalPages = Math.ceil(totalWords / PAGE_SIZE);
-
+  const totalPages = Math.ceil(totalWords / pageSize);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-2">
@@ -373,21 +397,6 @@ export default function ArticleView({ id }: { id: string }) {
             Back to Texts
           </Link>
           <div className="flex flex-wrap items-center justify-between gap-4">
-            {/*<span className="text-sm">
-              Known words: {knownWords}/{totalWords} (
-              {((knownWords / totalWords) * 100).toFixed(1)}%)
-            </span>
-            <button
-              onClick={markAllKnown}
-              className={`px-3 py-1 rounded-md ${
-                showMarkAll === 1
-                  ? "bg-red-100 text-red-700"
-                  : "bg-blue-100 text-blue-700"
-              }`}
-            >
-              {showMarkAll === 0 ? "Mark all known?" : "Confirm"}
-            </button>*/}
-
             {/* Learning Progress */}
             <LearningProgress known={knownWords} total={totalWords} />
 
@@ -403,10 +412,16 @@ export default function ArticleView({ id }: { id: string }) {
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Article Section */}
           <div className="flex-1 bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-100 dark:border-gray-700">
-            <h1 className="text-xl md:text-2xl font-bold mb-4">
-              {article.name}
-            </h1>
-
+            <div className="mb-4">
+              <h1 className="text-xl md:text-2xl font-bold">
+                {article.name} {/* Main title */}
+              </h1>
+              {article.source && (
+                <h2 className="text-base md:text-lg text-gray-600 dark:text-gray-400 mt-2">
+                  {article.source} {/* Subtitle */}
+                </h2>
+              )}
+            </div>
             <div
               ref={containerRef}
               className="prose dark:prose-invert max-w-none mb-6 h-[50vh] sm:h-[60vh] overflow-y-auto text-base sm:text-lg"
@@ -580,7 +595,7 @@ export default function ArticleView({ id }: { id: string }) {
                         </div>
                         <button
                           onClick={() => setSelectedWord(null)}
-                          className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 text-2xl"
+                          className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 text-2xl cursor-pointer"
                         >
                           &times;
                         </button>
@@ -638,11 +653,14 @@ export default function ArticleView({ id }: { id: string }) {
                           </div>
                         </div>
 
-                        <div className="space-y-2">
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                            Suggestions
-                          </label>
-                          {suggestions.length > 0 && (
+                        {suggestions.length > 0 && (
+                          <div className="space-y-2">
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                              {suggestions.length > 1
+                                ? "Suggestions"
+                                : "Suggestion"}
+                            </label>
+
                             <div className="flex flex-wrap gap-2">
                               {suggestions.map((translation, index) => (
                                 <button
@@ -670,8 +688,8 @@ export default function ArticleView({ id }: { id: string }) {
                                 </button>
                               ))}
                             </div>
-                          )}
-                        </div>
+                          </div>
+                        )}
 
                         <div className="space-y-2">
                           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -715,16 +733,18 @@ export default function ArticleView({ id }: { id: string }) {
                                 }}
                                 className={`p-3 cursor-pointer rounded-lg text-sm font-medium transition-all ${
                                   selectedWord.comfort === num
-                                    ? "bg-purple-600 text-white text-black"
-                                    : num === 5
-                                    ? "bg-green-100 hover:bg-green-900/30  text-black"
+                                    ? "ring-2 ring-purple-500"
+                                    : ""
+                                } ${
+                                  num === 5
+                                    ? "bg-green-100 hover:bg-green-900/30"
                                     : num === 4
-                                    ? "bg-blue-100 hover:bg-blue-900/30  text-black"
+                                    ? "bg-blue-100 hover:bg-blue-900/30"
                                     : num === 3
-                                    ? "bg-yellow-100 hover:bg-yellow-900/30  text-black"
+                                    ? "bg-yellow-100 hover:bg-yellow-900/30"
                                     : num === 2
-                                    ? "bg-red-100 hover:bg-red-900/30  text-black"
-                                    : "bg-gray-100 hover:bg-gray-900/30 text-black"
+                                    ? "bg-red-100 hover:bg-red-900/30"
+                                    : "bg-gray-100 hover:bg-gray-900/30"
                                 }`}
                               >
                                 {num} - {getComfortLevelName(num)}
@@ -813,11 +833,14 @@ export default function ArticleView({ id }: { id: string }) {
                         </div>
                       </div>
 
-                      <div className="space-y-2">
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                          Suggestions
-                        </label>
-                        {suggestions.length > 0 && (
+                      {suggestions.length > 0 && (
+                        <div className="space-y-2">
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            {suggestions.length > 1
+                              ? "Suggestions"
+                              : "Suggestion"}
+                          </label>
+
                           <div className="flex flex-wrap gap-2">
                             {suggestions.map((translation, index) => (
                               <button
@@ -843,8 +866,8 @@ export default function ArticleView({ id }: { id: string }) {
                               </button>
                             ))}
                           </div>
-                        )}
-                      </div>
+                        </div>
+                      )}
 
                       <div className="space-y-2">
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -888,16 +911,18 @@ export default function ArticleView({ id }: { id: string }) {
                               }}
                               className={`p-3 cursor-pointer rounded-lg text-sm font-medium transition-all ${
                                 selectedWord.comfort === num
-                                  ? "bg-purple-600 text-white text-black"
-                                  : num === 5
-                                  ? "bg-green-100 hover:bg-green-900/30 dark:bg-green-900"
+                                  ? "ring-2 ring-purple-500"
+                                  : ""
+                              } ${
+                                num === 5
+                                  ? "bg-green-100 hover:bg-green-900/30"
                                   : num === 4
-                                  ? "bg-blue-100 hover:bg-blue-900/30 dark:bg-blue-900"
+                                  ? "bg-blue-100 hover:bg-blue-900/30"
                                   : num === 3
-                                  ? "bg-yellow-100 hover:bg-yellow-900/30 dark:bg-yellow-900"
+                                  ? "bg-yellow-100 hover:bg-yellow-900/30"
                                   : num === 2
-                                  ? "bg-red-100 hover:bg-red-900/30 dark:bg-red-900"
-                                  : "bg-gray-100 hover:bg-gray-900/30 dark:bg-gray-900"
+                                  ? "bg-red-100 hover:bg-red-900/30"
+                                  : "bg-gray-100 hover:bg-gray-900/30"
                               }`}
                             >
                               {num} - {getComfortLevelName(num)}
