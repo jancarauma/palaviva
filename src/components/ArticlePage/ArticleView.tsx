@@ -303,7 +303,7 @@ export default function ArticleView({ id }: { id: string }) {
   /** Plays pronunciation for selected word */
   const playPronunciation = () => {
     if (!selectedWord || !speechSynthesisRef.current) return;
-    const langKey = article?.language.split("-")[0] || "";
+    const langKey = article?.language.split("-")[0] || "en";
     const targetLang = LANG_MAP[langKey] || article!.language;
     const voices = speechSynthesisRef.current.getVoices();
     const preferred = voices.find(v => v.lang.startsWith(targetLang));
