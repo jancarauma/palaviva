@@ -11,10 +11,14 @@ import { db } from "@/lib/db/schema";
 import { IArticle, IWord } from "@/lib/db/types";
 import { getComfortLevelName } from "@/lib/utils";
 import { getTranslationSuggestions } from "@/lib/translation";
-import { SpeakerWaveIcon } from "@/components/Icons";
 import { LearningProgress } from "@/components/ArticlePage/LearningProgress";
 import { PlaybackControls } from "@/components/ArticlePage/PlaybackControls";
 import { PaginationControls } from "@/components/ArticlePage/PaginationControls";
+import { ModalOverlay } from "./ModalOverlay";
+import { SuggestionsList } from "./SuggestionList";
+import { ComfortLevelSelector } from "./ComfortSelector";
+import { TranslationInput } from "./TranslationInput";
+import { WordDetailHeader } from "./WordDetailHeader";
 
 // -----------------------------------------------------------------------------
 // Constants
@@ -496,25 +500,14 @@ export default function ArticleView({ id }: { id: string }) {
           </div>
 
           {/* Translation Sidebar */}
-          <AnimatePresence>
-            {selectedWord && isMobile && (
-              <motion.div
-                key="overlay"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.2 }}
-                role="presentation"
-                className="fixed inset-0 bg-black/30 dark:bg-black/50 z-40"
-                onClick={() => setSelectedWord(null)}
-              />
-            )}
-          </AnimatePresence>
+          <ModalOverlay
+            isVisible={!!selectedWord && isMobile}
+            onClose={() => setSelectedWord(null)}
+          />
           <AnimatePresence>
             {selectedWord && (
               <>
-                {/* Mobile Translation Panel */}
-                {" "}                
+                {/* Mobile Translation Panel */}{" "}
                 {isMobile ? (
                   <motion.div
                     role="dialog"
@@ -581,356 +574,172 @@ export default function ArticleView({ id }: { id: string }) {
                       <div aria-live="polite" className="sr-only">
                         Painel {panelExpanded ? "expandido" : "recolhido"}
                       </div>
-                      <div className="flex justify-between items-center mb-6">
-                        <div className="flex items-center gap-3">
-                          <h3 className="text-xl font-semibold dark:text-gray-100">
-                            {selectedWord.name}
-                          </h3>
-                          <button
-                            onClick={playPronunciation}
-                            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors cursor-pointer"
-                            title="Listen"
-                          >
-                            <SpeakerWaveIcon className="w-6 h-6 text-blue-500 dark:text-blue-400" />
-                          </button>
-                        </div>
-                        <button
-                          onClick={() => setSelectedWord(null)}
-                          className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 text-2xl cursor-pointer"
-                        >
-                          &times;
-                        </button>
-                      </div>
+                      <WordDetailHeader
+                        selectedWord={selectedWord}
+                        onClose={() => setSelectedWord(null)}
+                        onPlayPronunciation={playPronunciation}
+                      />
 
                       <div className="space-y-6 flex-1">
-                        <div className="space-y-2">
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                            Translation
-                          </label>
-                          <div className="relative">
-                            <input
-                              type="text"
-                              value={selectedWord.translation || ""}
-                              onChange={async (e) => {
-                                const newTranslation = e.target.value;
-                                const updatedWord = {
-                                  ...selectedWord,
-                                  translation: newTranslation,
-                                };
-                                setSelectedWord(updatedWord);
-                                setWords((prev) =>
-                                  prev.map((w) =>
-                                    w.id === updatedWord.id ? updatedWord : w
-                                  )
-                                );
-                                try {
-                                  await db.words.update(updatedWord.id!, {
-                                    translation: newTranslation,
-                                  });
-                                } catch (error) {
-                                  console.error(
-                                    "Error saving translation:",
-                                    error
-                                  );
+                        <TranslationInput
+                          selectedWord={selectedWord}
+                          loadingSuggestions={loadingSuggestions}
+                          onUpdate={async (updatedWord) => {
+                            setSelectedWord(updatedWord);
+                            setWords((prev) =>
+                              prev.map((w) =>
+                                w.id === updatedWord.id ? updatedWord : w
+                              )
+                            );
 
-                                  setSelectedWord(selectedWord);
-                                  setWords((prev) =>
-                                    prev.map((w) =>
-                                      w.id === selectedWord.id
-                                        ? selectedWord
-                                        : w
-                                    )
-                                  );
-                                }
-                              }}
-                              placeholder="Add translation..."
-                              className="w-full px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-700 dark:bg-gray-700/50 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                            />
-                            {loadingSuggestions && (
-                              <div className="absolute right-3 top-3.5">
-                                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-purple-500"></div>
-                              </div>
-                            )}
-                          </div>
-                        </div>
+                            try {
+                              await db.words.update(updatedWord.id!, {
+                                translation: updatedWord.translation,
+                              });
+                            } catch (error) {
+                              console.error("Error saving translation:", error);
+                              setSelectedWord(selectedWord);
+                              setWords((prev) =>
+                                prev.map((w) =>
+                                  w.id === selectedWord.id ? selectedWord : w
+                                )
+                              );
+                              throw error;
+                            }
+                          }}
+                        />
 
-                        {suggestions.length > 0 && (
-                          <div className="space-y-2">
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                              {suggestions.length > 1
-                                ? "Suggestions"
-                                : "Suggestion"}
-                            </label>
+                        <SuggestionsList
+                          suggestions={suggestions}
+                          selectedWord={selectedWord}
+                          onUpdate={(updatedWord) => {
+                            setSelectedWord(updatedWord);
+                            setWords((prev) =>
+                              prev.map((w) =>
+                                w.id === updatedWord.id ? updatedWord : w
+                              )
+                            );
+                            db.words.update(updatedWord.id!, {
+                              translation: updatedWord.translation,
+                            });
+                          }}
+                        />
 
-                            <div className="flex flex-wrap gap-2">
-                              {suggestions.map((translation, index) => (
-                                <button
-                                  key={index}
-                                  onClick={() => {
-                                    const updatedWord = {
-                                      ...selectedWord,
-                                      translation,
-                                    };
-                                    setSelectedWord(updatedWord);
-                                    setWords((prev) =>
-                                      prev.map((w) =>
-                                        w.id === updatedWord.id
-                                          ? updatedWord
-                                          : w
-                                      )
-                                    );
-                                    db.words.update(updatedWord.id!, {
-                                      translation,
-                                    });
-                                  }}
-                                  className="px-3 py-1 text-sm bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-                                >
-                                  {translation}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-                        )}
+                        <ComfortLevelSelector
+                          selectedWord={selectedWord}
+                          onUpdate={async (updatedWord) => {
+                            setSelectedWord(updatedWord);
+                            setWords((prev) =>
+                              prev.map((w) =>
+                                w.id === updatedWord.id ? updatedWord : w
+                              )
+                            );
 
-                        <div className="space-y-2">
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                            Comfort Level
-                          </label>
-                          <div className="grid grid-cols-2 gap-3">
-                            {[1, 2, 3, 4, 5].map((num) => (
-                              <button
-                                key={num}
-                                onClick={async () => {
-                                  const updatedWord = {
-                                    ...selectedWord,
-                                    comfort: num,
-                                  };
-                                  setSelectedWord(updatedWord);
-                                  setWords((prev) =>
-                                    prev.map((w) =>
-                                      w.id === updatedWord.id ? updatedWord : w
-                                    )
-                                  );
-
-                                  try {
-                                    await db.words.update(updatedWord.id!, {
-                                      comfort: num,
-                                    });
-                                  } catch (error) {
-                                    console.error(
-                                      "Error updating comfort:",
-                                      error
-                                    );
-
-                                    setSelectedWord(selectedWord);
-                                    setWords((prev) =>
-                                      prev.map((w) =>
-                                        w.id === selectedWord.id
-                                          ? selectedWord
-                                          : w
-                                      )
-                                    );
-                                  }
-                                }}
-                                className={`p-3 cursor-pointer rounded-lg text-sm font-medium transition-all ${
-                                  selectedWord.comfort === num
-                                    ? "ring-2 ring-purple-500"
-                                    : ""
-                                } ${
-                                  num === 5
-                                  ? "bg-green-100 dark:bg-green-700/80 hover:bg-green-900/30"
-                                  : num === 4
-                                  ? "bg-blue-100 dark:bg-blue-700/80 hover:bg-blue-900/30"
-                                  : num === 3
-                                  ? "bg-yellow-100 dark:bg-yellow-700/80 hover:bg-yellow-900/30"
-                                  : num === 2
-                                  ? "bg-red-100 dark:bg-red-700/80 hover:bg-red-900/30"
-                                  : "bg-gray-100 dark:bg-gray-700/80 hover:bg-gray-900/30"
-                                }`}
-                              >
-                                {num} - {getComfortLevelName(num)}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
+                            try {
+                              await db.words.update(updatedWord.id!, {
+                                comfort: updatedWord.comfort,
+                              });
+                            } catch (error) {
+                              setSelectedWord(selectedWord);
+                              setWords((prev) =>
+                                prev.map((w) =>
+                                  w.id === selectedWord.id ? selectedWord : w
+                                )
+                              );
+                              throw error;
+                            }
+                          }}
+                          getComfortLevelName={(num) =>
+                            getComfortLevelName(num)
+                          }
+                        />
                       </div>
                     </div>
                   </motion.div>
-                ) : (                  
+                ) : (
                   <motion.div
                     initial={{ x: 100, opacity: 0 }}
                     animate={{ x: 0, opacity: 1 }}
                     exit={{ x: 100, opacity: 0 }}
                     className="w-full lg:w-96 bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-100 dark:border-gray-700 h-[60vh] lg:h-[80vh] flex flex-col sticky top-6"
                   >
-                    <div className="flex justify-between items-center mb-6">
-                      <div className="flex items-center gap-3">
-                        <h3 className="text-xl font-semibold dark:text-gray-100">
-                          {selectedWord.name}
-                        </h3>
-                        <button
-                          onClick={playPronunciation}
-                          className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors cursor-pointer"
-                          title="Listen"
-                        >
-                          <SpeakerWaveIcon className="w-6 h-6 text-blue-500 dark:text-blue-400" />
-                        </button>
-                      </div>
-                      <button
-                        onClick={() => setSelectedWord(null)}
-                        className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 text-2xl"
-                      >
-                        &times;
-                      </button>
-                    </div>
+                    <WordDetailHeader
+                      selectedWord={selectedWord}
+                      onClose={() => setSelectedWord(null)}
+                      onPlayPronunciation={playPronunciation}
+                    />
 
                     <div className="space-y-6 flex-1">
-                      <div className="space-y-2">
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                          Translation
-                        </label>
-                        <div className="relative">
-                          <input
-                            type="text"
-                            value={selectedWord.translation || ""}
-                            onChange={async (e) => {
-                              const newTranslation = e.target.value;
-                              const updatedWord = {
-                                ...selectedWord,
-                                translation: newTranslation,
-                              };
-                              setSelectedWord(updatedWord);
-                              setWords((prev) =>
-                                prev.map((w) =>
-                                  w.id === updatedWord.id ? updatedWord : w
-                                )
-                              );
-                              try {
-                                await db.words.update(updatedWord.id!, {
-                                  translation: newTranslation,
-                                });
-                              } catch (error) {
-                                console.error(
-                                  "Error saving translation:",
-                                  error
-                                );
+                      <TranslationInput
+                        selectedWord={selectedWord}
+                        loadingSuggestions={loadingSuggestions}
+                        onUpdate={async (updatedWord) => {
+                          setSelectedWord(updatedWord);
+                          setWords((prev) =>
+                            prev.map((w) =>
+                              w.id === updatedWord.id ? updatedWord : w
+                            )
+                          );
 
-                                setSelectedWord(selectedWord);
-                                setWords((prev) =>
-                                  prev.map((w) =>
-                                    w.id === selectedWord.id ? selectedWord : w
-                                  )
-                                );
-                              }
-                            }}
-                            placeholder="Add translation..."
-                            className="w-full px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-700 dark:bg-gray-700/50 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                          />
-                          {loadingSuggestions && (
-                            <div className="absolute right-3 top-3.5">
-                              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-purple-500"></div>
-                            </div>
-                          )}
-                        </div>
-                      </div>
+                          try {
+                            await db.words.update(updatedWord.id!, {
+                              translation: updatedWord.translation,
+                            });
+                          } catch (error) {
+                            console.error("Error saving translation:", error);
+                            setSelectedWord(selectedWord);
+                            setWords((prev) =>
+                              prev.map((w) =>
+                                w.id === selectedWord.id ? selectedWord : w
+                              )
+                            );
+                            throw error;
+                          }
+                        }}
+                      />
 
-                      {suggestions.length > 0 && (
-                        <div className="space-y-2">
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                            {suggestions.length > 1
-                              ? "Suggestions"
-                              : "Suggestion"}
-                          </label>
+                      <SuggestionsList
+                        suggestions={suggestions}
+                        selectedWord={selectedWord}
+                        onUpdate={(updatedWord) => {
+                          setSelectedWord(updatedWord);
+                          setWords((prev) =>
+                            prev.map((w) =>
+                              w.id === updatedWord.id ? updatedWord : w
+                            )
+                          );
+                          db.words.update(updatedWord.id!, {
+                            translation: updatedWord.translation,
+                          });
+                        }}
+                      />
 
-                          <div className="flex flex-wrap gap-2">
-                            {suggestions.map((translation, index) => (
-                              <button
-                                key={index}
-                                onClick={() => {
-                                  const updatedWord = {
-                                    ...selectedWord,
-                                    translation,
-                                  };
-                                  setSelectedWord(updatedWord);
-                                  setWords((prev) =>
-                                    prev.map((w) =>
-                                      w.id === updatedWord.id ? updatedWord : w
-                                    )
-                                  );
-                                  db.words.update(updatedWord.id!, {
-                                    translation,
-                                  });
-                                }}
-                                className="px-3 py-1 text-sm bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-                              >
-                                {translation}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      )}
+                      <ComfortLevelSelector
+                        selectedWord={selectedWord}
+                        onUpdate={async (updatedWord) => {
+                          setSelectedWord(updatedWord);
+                          setWords((prev) =>
+                            prev.map((w) =>
+                              w.id === updatedWord.id ? updatedWord : w
+                            )
+                          );
 
-                      <div className="space-y-2">
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                          Comfort Level
-                        </label>
-                        <div className="grid grid-cols-2 gap-3">
-                          {[1, 2, 3, 4, 5].map((num) => (
-                            <button
-                              key={num}
-                              onClick={async () => {
-                                const updatedWord = {
-                                  ...selectedWord,
-                                  comfort: num,
-                                };
-                                setSelectedWord(updatedWord);
-                                setWords((prev) =>
-                                  prev.map((w) =>
-                                    w.id === updatedWord.id ? updatedWord : w
-                                  )
-                                );
-
-                                try {
-                                  await db.words.update(updatedWord.id!, {
-                                    comfort: num,
-                                  });
-                                } catch (error) {
-                                  console.error(
-                                    "Error updating comfort:",
-                                    error
-                                  );
-
-                                  setSelectedWord(selectedWord);
-                                  setWords((prev) =>
-                                    prev.map((w) =>
-                                      w.id === selectedWord.id
-                                        ? selectedWord
-                                        : w
-                                    )
-                                  );
-                                }
-                              }}
-                              className={`p-3 cursor-pointer rounded-lg text-sm font-medium transition-all ${
-                                selectedWord.comfort === num
-                                  ? "ring-2 ring-purple-500"
-                                  : ""
-                              } ${
-                                num === 5
-                                  ? "bg-green-100 dark:bg-green-700/80 hover:bg-green-900/30"
-                                  : num === 4
-                                  ? "bg-blue-100 dark:bg-blue-700/80 hover:bg-blue-900/30"
-                                  : num === 3
-                                  ? "bg-yellow-100 dark:bg-yellow-700/80 hover:bg-yellow-900/30"
-                                  : num === 2
-                                  ? "bg-red-100 dark:bg-red-700/80 hover:bg-red-900/30"
-                                  : "bg-gray-100 dark:bg-gray-700/80 hover:bg-gray-900/30"
-                              }`}
-                            >
-                              {num} - {getComfortLevelName(num)}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
+                          try {
+                            await db.words.update(updatedWord.id!, {
+                              comfort: updatedWord.comfort,
+                            });
+                          } catch (error) {
+                            setSelectedWord(selectedWord);
+                            setWords((prev) =>
+                              prev.map((w) =>
+                                w.id === selectedWord.id ? selectedWord : w
+                              )
+                            );
+                            throw error;
+                          }
+                        }}
+                        getComfortLevelName={(num) => getComfortLevelName(num)}
+                      />
                     </div>
                   </motion.div>
                 )}{" "}
@@ -939,6 +748,6 @@ export default function ArticleView({ id }: { id: string }) {
           </AnimatePresence>
         </div>
       </div>
-    </div>    
+    </div>
   );
 }

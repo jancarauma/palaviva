@@ -14,13 +14,13 @@ export function getComfortLevelName(comfort: number): string {
     case 1:
       return "Unknown";
     case 2:
-      return "Hard";
+      return "Difficult";
     case 3:
       return "Medium";
     case 4:
-      return "Easy";
+      return "Comfortable";
     case 5:
-      return "Known";
+      return "Mastered";
     default:
       return "Unknown";
   }
