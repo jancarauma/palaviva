@@ -392,4 +392,4 @@ export async function initializeDB() {
   }
 }
 
-const latestVersion = 7;
+const latestVersion = 6;

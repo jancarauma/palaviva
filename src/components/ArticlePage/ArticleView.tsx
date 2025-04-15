@@ -424,7 +424,7 @@ export default function ArticleView({ id }: { id: string }) {
             </div>
             <div
               ref={containerRef}
-              className="prose dark:prose-invert max-w-none mb-6 h-[50vh] sm:h-[60vh] overflow-y-auto text-base sm:text-lg"
+              className="p-1 prose dark:prose-invert max-w-none mb-6 h-[50vh] sm:h-[60vh] overflow-y-auto text-base sm:text-lg"
             >
               {!article && (
                 <div className="text-gray-500">Loading article...</div>
@@ -513,7 +513,8 @@ export default function ArticleView({ id }: { id: string }) {
           <AnimatePresence>
             {selectedWord && (
               <>
-                {" "}
+                {/* Mobile Translation Panel */}
+                {" "}                
                 {isMobile ? (
                   <motion.div
                     role="dialog"
@@ -737,14 +738,14 @@ export default function ArticleView({ id }: { id: string }) {
                                     : ""
                                 } ${
                                   num === 5
-                                    ? "bg-green-100 hover:bg-green-900/30"
-                                    : num === 4
-                                    ? "bg-blue-100 hover:bg-blue-900/30"
-                                    : num === 3
-                                    ? "bg-yellow-100 hover:bg-yellow-900/30"
-                                    : num === 2
-                                    ? "bg-red-100 hover:bg-red-900/30"
-                                    : "bg-gray-100 hover:bg-gray-900/30"
+                                  ? "bg-green-100 dark:bg-green-700/80 hover:bg-green-900/30"
+                                  : num === 4
+                                  ? "bg-blue-100 dark:bg-blue-700/80 hover:bg-blue-900/30"
+                                  : num === 3
+                                  ? "bg-yellow-100 dark:bg-yellow-700/80 hover:bg-yellow-900/30"
+                                  : num === 2
+                                  ? "bg-red-100 dark:bg-red-700/80 hover:bg-red-900/30"
+                                  : "bg-gray-100 dark:bg-gray-700/80 hover:bg-gray-900/30"
                                 }`}
                               >
                                 {num} - {getComfortLevelName(num)}
@@ -755,7 +756,7 @@ export default function ArticleView({ id }: { id: string }) {
                       </div>
                     </div>
                   </motion.div>
-                ) : (
+                ) : (                  
                   <motion.div
                     initial={{ x: 100, opacity: 0 }}
                     animate={{ x: 0, opacity: 1 }}
@@ -915,14 +916,14 @@ export default function ArticleView({ id }: { id: string }) {
                                   : ""
                               } ${
                                 num === 5
-                                  ? "bg-green-100 hover:bg-green-900/30"
+                                  ? "bg-green-100 dark:bg-green-700/80 hover:bg-green-900/30"
                                   : num === 4
-                                  ? "bg-blue-100 hover:bg-blue-900/30"
+                                  ? "bg-blue-100 dark:bg-blue-700/80 hover:bg-blue-900/30"
                                   : num === 3
-                                  ? "bg-yellow-100 hover:bg-yellow-900/30"
+                                  ? "bg-yellow-100 dark:bg-yellow-700/80 hover:bg-yellow-900/30"
                                   : num === 2
-                                  ? "bg-red-100 hover:bg-red-900/30"
-                                  : "bg-gray-100 hover:bg-gray-900/30"
+                                  ? "bg-red-100 dark:bg-red-700/80 hover:bg-red-900/30"
+                                  : "bg-gray-100 dark:bg-gray-700/80 hover:bg-gray-900/30"
                               }`}
                             >
                               {num} - {getComfortLevelName(num)}
@@ -938,6 +939,6 @@ export default function ArticleView({ id }: { id: string }) {
           </AnimatePresence>
         </div>
       </div>
-    </div>
+    </div>    
   );
 }

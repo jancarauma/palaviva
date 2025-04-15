@@ -179,6 +179,7 @@ export default function HomePage() {
 
   return (
     <div className="dark:bg-gray-900 dark:text-white flex flex-col min-h-screen bg-gray-50">
+      
       {/* Debug Button */}
       {isDebug && (
         <div className="fixed bottom-0 right-0 p-2 z-50">
