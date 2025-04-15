@@ -80,17 +80,25 @@ export default function ArticleItem({
             )}
             <span>{confirmDelete ? "Confirm" : "Delete"}</span>
           </button>
-          
+
           {isHovered && (
             <span className="text-xs text-gray-400 dark:text-gray-500 transition-opacity">
-              {article.word_count} words
+              <div className="flex items-center gap-1">
+                <span className="font-medium">{article.word_count} words</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <span className="font-medium">
+                  {"~ "}{Math.ceil((article.word_count || 0) / 200)}
+                </span>
+                <span className="hidden sm:inline">min.</span>
+              </div>
             </span>
           )}
         </div>
       </div>
 
       {confirmDelete && (
-        <div 
+        <div
           role="tooltip"
           className="absolute -top-2 right-0 px-2 py-1 bg-red-100 dark:bg-red-800 text-red-700 dark:text-red-200 text-xs rounded-full animate-pulse"
         >

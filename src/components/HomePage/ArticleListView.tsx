@@ -14,9 +14,8 @@ export default function ArticleListView({
   onDelete: (id: number) => void;
   onSearch: (query: string) => void;
 }) {
-
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
+    <div className="min-h-full bg-gray-50 dark:bg-gray-900 p-6">
       <div className="max-w-4xl mx-auto">
         <div className="mb-8 text-center">
           <h1 className="mb-8 text-4xl font-bold text-gray-800 dark:text-white mb-3">
@@ -78,7 +77,10 @@ export default function ArticleListView({
             <p className="mb-6 text-gray-600 dark:text-gray-300 text-sm max-w-md mx-auto leading-6">
               We couldn&apos;t find any articles in{" "}
               {targetLanguageName.toLowerCase()}. You can either{" "}
-              <span className="inline-flex items-center text-purple-600 dark:text-purple-400 hover:underline cursor-pointer transition-colors">
+              <button
+                className="inline-flex items-center text-purple-600 dark:text-purple-400 hover:underline cursor-pointer transition-colors"
+                onClick={() => (window.location.href = "/getting-started")}
+              >
                 <svg
                   className="w-4 h-4 mr-1"
                   fill="none"
@@ -92,10 +94,13 @@ export default function ArticleListView({
                     d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
                   />
                 </svg>
-                search again
-              </span>{" "}
+                Getting Started
+              </button>{" "}
               or{" "}
-              <span className="inline-flex items-center text-purple-600 dark:text-purple-400 hover:underline cursor-pointer transition-colors">
+              <button
+                className="inline-flex items-center text-purple-600 dark:text-purple-400 hover:underline cursor-pointer transition-colors"
+                onClick={() => (window.location.href = "/best-practices")}
+              >
                 <svg
                   className="w-4 h-4 mr-1"
                   fill="none"
@@ -109,8 +114,8 @@ export default function ArticleListView({
                     d="M12 6v6m0 0v6m0-6h6m-6 0H6"
                   />
                 </svg>
-                create a new article.
-              </span>
+                Best Practices
+              </button>
             </p>
             <button
               onClick={() => (window.location.href = "/create")}
@@ -129,7 +134,7 @@ export default function ArticleListView({
                   d="M12 6v6m0 0v6m0-6h6m-6 0H6"
                 />
               </svg>
-              Create Your First Article
+              Create New Text
             </button>
           </div>
         ) : (

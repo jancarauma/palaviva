@@ -35,12 +35,12 @@ export default function GettingStartedPage() {
             <p className="text-xl text-gray-600 dark:text-gray-400">
               Start your language learning journey in 4 simple steps
             </p>
-            <div className="flex justify-center gap-4">
+            {/*<div className="flex justify-center gap-4">
               <div className="w-8 h-8 rounded-full bg-purple-600 text-white flex items-center justify-center">1</div>
               <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 flex items-center justify-center">2</div>
               <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 flex items-center justify-center">3</div>
               <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 flex items-center justify-center">4</div>
-            </div>
+            </div>*/}
           </section>
 
           {/* Steps Grid */}

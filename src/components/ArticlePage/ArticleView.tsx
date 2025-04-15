@@ -19,6 +19,7 @@ import { SuggestionsList } from "./SuggestionList";
 import { ComfortLevelSelector } from "./ComfortSelector";
 import { TranslationInput } from "./TranslationInput";
 import { WordDetailHeader } from "./WordDetailHeader";
+import WordToken from "./WordToken";
 
 // -----------------------------------------------------------------------------
 // Constants
@@ -211,11 +212,11 @@ export default function ArticleView({ id }: { id: string }) {
     );
     const utter = new SpeechSynthesisUtterance(article.original);
     if (preferredVoices.length > 0) {
-      utter.voice = preferredVoices[0];
+      utter.voice = preferredVoices[0];      
     }
     utter.lang = targetLang;
-    utter.rate = langKey === "en" ? 0.89 : 0.9;
-    utter.pitch = langKey === "en" ? 1.19 : 1.2;
+    utter.rate = langKey === "en" ? 1.0 : 0.95;
+    utter.pitch = langKey === "en" ? 1.0 : 1.05;
 
     utter.onboundary = (evt) => {
       if (evt.name === "word") {
@@ -452,41 +453,17 @@ export default function ArticleView({ id }: { id: string }) {
                   const isCurrentWord = globalIndex === currentWordIndex;
 
                   return (
-                    <span
+                    <WordToken
                       key={`${token}-${index}`}
-                      className={`px-1 rounded ${
-                        isWord
-                          ? "cursor-pointer hover:underline hover:bg-gray-100 dark:hover:bg-gray-900"
-                          : ""
-                      } ${
-                        comfort === 5
-                          ? "bg-green-100 dark:bg-green-900"
-                          : comfort === 4
-                          ? "bg-blue-100 dark:bg-blue-900"
-                          : comfort === 3
-                          ? "bg-yellow-100 dark:bg-yellow-900"
-                          : comfort === 2
-                          ? "bg-red-100 dark:bg-red-900"
-                          : ""
-                      } ${
-                        selectedWord && wordData?.id === selectedWord.id
-                          ? "ring-2 ring-purple-500"
-                          : ""
-                      } ${
-                        isCurrentWord && isWord
-                          ? "bg-orange-100 dark:bg-orange-900 shadow-md"
-                          : ""
-                      }`}
-                      style={{
-                        transition: "background-color 50ms ease-in-out",
-                      }}
-                      onClick={
-                        isWord ? () => handleWordClick(token) : undefined
-                      }
-                    >
-                      {" "}
-                      {token}{" "}
-                    </span>
+                      token={token}
+                      index={index}
+                      isWord={isWord}
+                      comfort={comfort}
+                      selectedWord={selectedWord}
+                      wordData={wordData}
+                      isCurrentWord={isCurrentWord}
+                      onWordClick={handleWordClick}
+                    />
                   );
                 })}
             </div>
