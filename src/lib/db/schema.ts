@@ -186,58 +186,67 @@ class LanguageAppDB extends Dexie {
     return Dexie.Promise.all([
       this.languages.bulkAdd([
         {
-          name: "French",
-          iso_639_1: "fr",
-          text_splitting_regex: "[\\p{Z}\\p{P}\\p{S}]+",
-          word_regex: "^\\p{L}+(['’-]\\p{L}+)*$",
+          name: "Portuguese",
+          iso_639_1: "pt",
+          text_splitting_regex:
+            "[^\\p{L}\\p{Nd}'’àáâãäåçèéêëìíîïñòóôõöùúûüýÿÀÁÂÃÄÅÇÈÉÊËÌÍÎÏÑÒÓÔÕÖÙÚÛÜÝŸ‑–—]+",
+          word_regex: "^(?:\\p{L}\\p{M}*)+(?:[-'’](?:\\p{L}\\p{M}*)+)*$",
         },
         {
-          name: "English",
-          iso_639_1: "en",
-          text_splitting_regex: "[\\p{Z}\\p{P}\\p{S}]+",
-          word_regex: "^\\p{L}+(['’-]\\p{L}+)*$",
+          name: "French",
+          iso_639_1: "fr",
+          text_splitting_regex: "[^\\p{L}\\p{Nd}'’’‐‑–—―-]+",
+          word_regex:
+            "^(?:\\p{L}\\p{M}*)+(?:['’ʼ‘‛‚‹›“”„‟«»‐‑–—―-](?:\\p{L}\\p{M}*)+)*$",
         },
         {
           name: "Spanish",
           iso_639_1: "es",
-          text_splitting_regex: "[\\p{Z}\\p{P}\\p{S}]+",
-          word_regex: "^\\p{L}+(['’-]\\p{L}+)*$",
-        },
-        {
-          name: "Polish",
-          iso_639_1: "pl",
-          text_splitting_regex: "[\\p{Z}\\p{P}\\p{S}]+",
-          word_regex: "^\\p{L}+(['’-]\\p{L}+)*$",
-        },
-        {
-          name: "German",
-          iso_639_1: "de",
-          text_splitting_regex: "[\\p{Z}\\p{P}\\p{S}]+",
-          word_regex: "^\\p{L}+(['’-]\\p{L}+)*$",
-        },
-        {
-          name: "Swedish",
-          iso_639_1: "sv",
-          text_splitting_regex: "[\\p{Z}\\p{P}\\p{S}]+",
-          word_regex: "^\\p{L}+(['’-]\\p{L}+)*$",
-        },
-        {
-          name: "Dutch",
-          iso_639_1: "nl",
-          text_splitting_regex: "[\\p{Z}\\p{P}\\p{S}]+",
-          word_regex: "^\\p{L}+(['’-]\\p{L}+)*$",
+          text_splitting_regex: "[^\\p{L}\\p{Nd}'’¡¿ñáéíóúüÁÉÍÓÚÜ-]+",
+          word_regex: "^(?:\\p{L}\\p{M}*)+(?:[-'’¡¿](?:\\p{L}\\p{M}*)+)*$",
         },
         {
           name: "Italian",
           iso_639_1: "it",
-          text_splitting_regex: "[\\p{Z}\\p{P}\\p{S}]+",
-          word_regex: "^\\p{L}+(['’-]\\p{L}+)*$",
+          text_splitting_regex: "[^\\p{L}\\p{Nd}'’àèéìòùÀÈÉÌÒù‑–—]+",
+          word_regex: "^(?:\\p{L}\\p{M}*)+(?:[-'’](?:\\p{L}\\p{M}*)+)*$",
         },
         {
-          name: "Português",
-          iso_639_1: "pt",
-          text_splitting_regex: "[\\p{Z}\\p{P}\\p{S}]+",
-          word_regex: "^\\p{L}+([ãõâêôáéíóúç'-]\\p{L}+)*$",
+          name: "Polish",
+          iso_639_1: "pl",
+          text_splitting_regex: "[^\\p{L}\\p{Nd}'’ąćęłńóśźżĄĆĘŁŃÓŚŹŻ-]+",
+          word_regex: "^(?:\\p{L}\\p{M}*)+(?:[-'’](?:\\p{L}\\p{M}*)+)*$",
+        },
+        {
+          name: "German",
+          iso_639_1: "de",
+          text_splitting_regex: "[^\\p{L}\\p{Nd}'’äöüßÄÖÜẞ‑–—]+",
+          word_regex:
+            "^(?:\\p{L}\\p{M}*)+(?:[-'’‘’„“”«»‑–—](?:\\p{L}\\p{M}*)+)*$",
+        },
+        {
+          name: "Swedish",
+          iso_639_1: "sv",
+          text_splitting_regex: "[^\\p{L}\\p{Nd}'’åäöÅÄÖ‑–—]+",
+          word_regex: "^(?:\\p{L}\\p{M}*)+(?:[-'’‘’«»‑–—](?:\\p{L}\\p{M}*)+)*$",
+        },
+        {
+          name: "Dutch",
+          iso_639_1: "nl",
+          text_splitting_regex: "[^\\p{L}\\p{Nd}'’éèëïÉÈËÏ‑–—]+",
+          word_regex: "^(?:\\p{L}\\p{M}*)+(?:[-'’](?:\\p{L}\\p{M}*)+)*$",
+        },
+        {
+          name: "Turkish",
+          iso_639_1: "tr",
+          text_splitting_regex: "[^\\p{L}\\p{Nd}'’âîûĞğİıŞşÇçÖöÜü‑–—]+",
+          word_regex: "^(?:\\p{L}\\p{M}*)+(?:[-'’](?:\\p{L}\\p{M}*)+)*$",
+        },
+        {
+          name: "English",
+          iso_639_1: "en",
+          text_splitting_regex: "[^\\p{L}\\p{Nd}'’‑–—]+",
+          word_regex: "^(?:(?:\\p{L})+([-'’‘’“”]\\p{L}+)*)+$",
         },
       ]),
 
@@ -260,7 +269,10 @@ class LanguageAppDB extends Dexie {
         date_created: Date.now(),
         last_opened: 0,
         current_page: 0,
-        word_count: db.calculateWordCount(DEFAULT_ARTICLE_CONTENT, "[\\p{Z}\\p{P}\\p{S}]+")
+        word_count: db.calculateWordCount(
+          DEFAULT_ARTICLE_CONTENT,
+          "[\\p{Z}\\p{P}\\p{S}]+"
+        ),
       }),
     ]);
   }
@@ -300,20 +312,19 @@ export const wordService = {
 
 // Articles operations
 export const articleService = {
-  
   async insert(article: Omit<IArticle, "article_id">): Promise<number> {
     // Get language-specific regex
     const lang = await db.languages
       .where("iso_639_1")
       .equals(article.language)
       .first();
-    
+
     const regex = lang?.text_splitting_regex || "[\\p{Z}\\p{P}\\p{S}]+";
     const wordCount = db.calculateWordCount(article.original, regex);
 
     return db.articles.add({
       ...article,
-      word_count: wordCount
+      word_count: wordCount,
     });
   },
 

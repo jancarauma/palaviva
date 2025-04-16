@@ -13,11 +13,11 @@ export const LearningProgress: React.FC<LearningProgressProps> = ({
   return (
     <div className="flex-1">
       <div className="flex items-center justify-between mb-2">
-      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+        {/*<span className="text-sm font-medium text-gray-700 dark:text-gray-300">
           Learning Progress:
-        </span>
+        </span>*/}
         <span className="px-1 text-sm text-gray-500 dark:text-gray-400">
-          {known}/{total} unique words
+          {known} / {total} words known
         </span>
       </div>
       <div className="relative h-3 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">

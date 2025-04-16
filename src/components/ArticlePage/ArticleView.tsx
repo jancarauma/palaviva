@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence, useAnimation } from "framer-motion";
 import { useMediaQuery } from "react-responsive";
-import { ChevronLeftIcon } from "@heroicons/react/24/outline";
+import { ChevronLeftIcon, SparklesIcon } from "@heroicons/react/24/outline";
 
 import { db } from "@/lib/db/schema";
 import { IArticle, IWord } from "@/lib/db/types";
@@ -212,7 +212,7 @@ export default function ArticleView({ id }: { id: string }) {
     );
     const utter = new SpeechSynthesisUtterance(article.original);
     if (preferredVoices.length > 0) {
-      utter.voice = preferredVoices[0];      
+      utter.voice = preferredVoices[0];
     }
     utter.lang = targetLang;
     utter.rate = langKey === "en" ? 1.0 : 0.95;
@@ -393,24 +393,48 @@ export default function ArticleView({ id }: { id: string }) {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-2">
       <div className="max-w-7xl mx-auto p-4 sm:p-6">
-        <div className="mb-6 flex flex-col md:flex-row gap-4 justify-between items-start md:items-center">
-          <Link
-            href="/"
-            className="inline-flex items-center text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-500 transition-colors"
-          >
-            <ChevronLeftIcon className="w-5 h-5 mr-2" />
-            Back to Texts
-          </Link>
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            {/* Learning Progress */}
-            <LearningProgress known={knownWords} total={totalWords} />
+        <div className="mb-8 flex flex-col md:flex-row gap-4 justify-between items-start md:items-center bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+          <motion.div whileHover={{ x: -2 }}>
+            <Link
+              href="/"
+              className="inline-flex items-center text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-500 transition-colors"
+            >
+              <ChevronLeftIcon className="w-5 h-5 mr-2" />
+              Back to Texts
+            </Link>
+          </motion.div>
 
-            {/* Playback Controls */}
-            <PlaybackControls
-              isPlaying={isPlaying}
-              togglePlayback={togglePlayback}
-              voicesLoaded={voicesLoaded}
-            />
+          <div className="flex flex-col sm:flex-row items-center gap-2 w-full md:w-auto">
+            <div className="flex items-center gap-4 bg-gray-50 dark:bg-gray-700 px-4 py-2 rounded-lg">
+              <div className="hidden sm:block w-px h-6 bg-gray-200 dark:bg-gray-600" />
+              <LearningProgress known={knownWords} total={totalWords} />
+              <PlaybackControls
+                isPlaying={isPlaying}
+                togglePlayback={togglePlayback}
+                voicesLoaded={voicesLoaded}
+              />
+            </div>
+
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="w-full sm:w-auto"
+            >
+              <Link
+                href={`/flashcards/${id}`}
+                className="inline-flex items-center justify-center gap-2 w-full px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-medium rounded-lg shadow-sm hover:shadow-md transition-all"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="w-5 h-5 text-white/90"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                >
+                  <path d="M19 5v14H5V5h14m0-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-8 12H9v-2h2v2zm0-4H9V9h2v2zm0-4H9V5h2v2zm4 8h-2v-2h2v2zm0-4h-2V9h2v2zm0-4h-2V5h2v2z" />
+                </svg>
+                <span>Flashcards</span>
+              </Link>
+            </motion.div>
           </div>
         </div>
 
