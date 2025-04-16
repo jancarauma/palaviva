@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence, useAnimation } from "framer-motion";
 import { useMediaQuery } from "react-responsive";
-import { ChevronLeftIcon, SparklesIcon } from "@heroicons/react/24/outline";
+import { ChevronLeftIcon } from "@heroicons/react/24/outline";
 
 import { db } from "@/lib/db/schema";
 import { IArticle, IWord } from "@/lib/db/types";
