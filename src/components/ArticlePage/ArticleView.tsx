@@ -391,56 +391,73 @@ export default function ArticleView({ id }: { id: string }) {
   const totalPages = Math.ceil(totalWords / pageSize);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-2">
-      <div className="max-w-7xl mx-auto p-4 sm:p-6">
-        <div className="mb-8 flex flex-col md:flex-row gap-4 justify-between items-start md:items-center bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
-          <motion.div whileHover={{ x: -2 }}>
-            <Link
-              href="/"
-              className="inline-flex items-center text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-500 transition-colors"
-            >
-              <ChevronLeftIcon className="w-5 h-5 mr-2" />
-              Back to Texts
-            </Link>
-          </motion.div>
+    <div className="min-h-screen bg-gradient-to-br from-purple-50/50 via-blue-50/50 to-pink-50/50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+      {/* Animated background elements */}
+      <div className="fixed inset-0 opacity-20 dark:opacity-30 pointer-events-none">
+        <div className="absolute -top-32 -left-48 w-96 h-96 bg-purple-100 dark:bg-purple-900/20 rounded-full blur-3xl animate-float"></div>
+        <div className="absolute -top-20 -right-24 w-64 h-64 bg-pink-100 dark:bg-pink-900/20 rounded-full blur-3xl animate-float-delayed"></div>
+      </div>
 
-          <div className="flex flex-col sm:flex-row items-center gap-2 w-full md:w-auto">
-            <div className="flex items-center gap-4 bg-gray-50 dark:bg-gray-700 px-4 py-2 rounded-lg">
-              <div className="hidden sm:block w-px h-6 bg-gray-200 dark:bg-gray-600" />
-              <LearningProgress known={knownWords} total={totalWords} />
-              <PlaybackControls
-                isPlaying={isPlaying}
-                togglePlayback={togglePlayback}
-                voicesLoaded={voicesLoaded}
-              />
+      <div className="relative max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+        {/* Header Section */}
+        <motion.div
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          className="mb-8 bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg rounded-2xl shadow-lg p-6 border border-gray-100/50 dark:border-gray-700/30"
+        >
+          <div className="flex flex-col md:flex-row gap-4 justify-between items-start md:items-center">
+            <div className="flex items-center justify-between mb-6">
+              <Link
+                href="/"
+                className="group inline-flex items-center text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-500 transition-all"
+              >
+                <ChevronLeftIcon className="w-5 h-5 mr-2 transition-transform group-hover:-translate-x-1" />
+                <span className="bg-gradient-to-r from-purple-600 to-purple-600 bg-[length:0_2px] bg-left-bottom bg-no-repeat transition-[background-size] group-hover:bg-[length:100%_2px]">
+                  Back to Texts
+                </span>
+              </Link>
             </div>
 
-            <motion.div
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className="w-full sm:w-auto"
-            >
-              <Link
-                href={`/flashcards/${id}`}
-                className="inline-flex items-center justify-center gap-2 w-full px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-medium rounded-lg shadow-sm hover:shadow-md transition-all"
+            <div className="flex flex-col sm:flex-row items-center gap-4 w-full md:w-auto">
+              <div className="flex items-center gap-4 bg-gray-50/50 dark:bg-gray-700/50 px-4 py-2 rounded-xl backdrop-blur-sm">
+                <LearningProgress known={knownWords} total={totalWords} />
+                <PlaybackControls
+                  isPlaying={isPlaying}
+                  togglePlayback={togglePlayback}
+                  voicesLoaded={voicesLoaded}
+                />
+              </div>
+
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="w-5 h-5 text-white/90"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
+                <Link
+                  href={`/flashcards/${id}`}
+                  className="inline-flex items-center justify-center gap-2 w-full px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-medium rounded-xl shadow-sm hover:shadow-md transition-all"
                 >
-                  <path d="M19 5v14H5V5h14m0-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-8 12H9v-2h2v2zm0-4H9V9h2v2zm0-4H9V5h2v2zm4 8h-2v-2h2v2zm0-4h-2V9h2v2zm0-4h-2V5h2v2z" />
-                </svg>
-                <span>Flashcards</span>
-              </Link>
-            </motion.div>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="w-5 h-5 text-white/90"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                  >
+                    <path d="M19 5v14H5V5h14m0-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-8 12H9v-2h2v2zm0-4H9V9h2v2zm0-4H9V5h2v2zm4 8h-2v-2h2v2zm0-4h-2V9h2v2zm0-4h-2V5h2v2z" />
+                  </svg>
+                  <span>Review Article</span>
+                </Link>
+              </motion.div>
+            </div>
           </div>
-        </div>
+        </motion.div>
 
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Article Section */}
-          <div className="flex-1 bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-100 dark:border-gray-700">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex-1 bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg rounded-2xl shadow-lg p-6 border border-gray-100/50 dark:border-gray-700/30"
+          >
             <div className="mb-4">
               <h1 className="text-xl md:text-2xl font-bold">
                 {article.name} {/* Main title */}
@@ -498,7 +515,7 @@ export default function ArticleView({ id }: { id: string }) {
               totalPages={totalPages}
               onChange={handlePageChange}
             />
-          </div>
+          </motion.div>
 
           {/* Translation Sidebar */}
           <ModalOverlay
@@ -544,7 +561,7 @@ export default function ArticleView({ id }: { id: string }) {
                       damping: 40,
                       mass: 0.5,
                     }}
-                    className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 rounded-t-2xl shadow-2xl border-t border-gray-100 dark:border-gray-700 h-[85vh] max-h-screen flex flex-col z-50 focus:outline-none"
+                    className="fixed bottom-0 left-0 right-0 bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl rounded-t-2xl shadow-2xl border-t border-gray-100/50 dark:border-gray-700/30 h-[85vh]"
                     style={{ touchAction: "pan-y" }}
                     {...(isMobile && {
                       onClick: (e) => e.stopPropagation(),
@@ -662,7 +679,7 @@ export default function ArticleView({ id }: { id: string }) {
                     initial={{ x: 100, opacity: 0 }}
                     animate={{ x: 0, opacity: 1 }}
                     exit={{ x: 100, opacity: 0 }}
-                    className="w-full lg:w-96 bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-100 dark:border-gray-700 h-[60vh] lg:h-[80vh] flex flex-col sticky top-6"
+                    className="w-full lg:w-96 bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl rounded-2xl shadow-lg p-6 border border-gray-100/50 dark:border-gray-700/30 h-[80vh] flex flex-col sticky top-6"
                   >
                     <WordDetailHeader
                       selectedWord={selectedWord}

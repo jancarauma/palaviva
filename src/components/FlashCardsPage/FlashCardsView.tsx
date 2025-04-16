@@ -190,24 +190,42 @@ export default function FlashcardsView({ id }: { id: string }) {
     );
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
-      <div className="max-w-3xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50/50 via-blue-50/50 to-pink-50/50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+      <div className="relative max-w-3xl mx-auto p-4 sm:p-6 lg:p-8">
+        {/* Animated background elements */}
+        <div className="fixed inset-0 opacity-20 dark:opacity-30 pointer-events-none">
+          <div className="absolute -top-32 -left-48 w-96 h-96 bg-purple-100 dark:bg-purple-900/20 rounded-full blur-3xl animate-float"></div>
+          <div className="absolute -top-20 -right-24 w-64 h-64 bg-pink-100 dark:bg-pink-900/20 rounded-full blur-3xl animate-float-delayed"></div>
+        </div>
+
+        {/* Header */}
+        <motion.div
+          initial={{ y: -20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          className="mb-8 flex justify-between items-center bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg rounded-2xl p-4 shadow-sm border border-gray-100/50 dark:border-gray-700/30"
+        >
           <motion.div whileHover={{ x: -2 }}>
             <Link
               href={`/article/${id}`}
-              className="inline-flex items-center text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-500 transition-colors"
+              className="inline-flex items-center gap-2 text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-500 transition-colors group"
             >
-              <ChevronLeftIcon className="w-5 h-5 mr-2" />
-              Back to Texts
+              <ChevronLeftIcon className="w-5 h-5 transition-transform group-hover:-translate-x-1" />
+              <span className="font-medium">Back to Text</span>
             </Link>
           </motion.div>
-          {/*((currentCard + 1) < flashcards.length) && (<div className="text-lg font-semibold text-purple-500">
-            Score: {score} of {flashcards.length - 1}
-          </div>)*/}
-        </div>
 
-        {currentCard + 1 < flashcards.length && (
+          <div className="flex items-center gap-2 bg-gray-100/50 dark:bg-gray-700/50 px-3 py-1 rounded-lg">
+            <span className="text-sm font-medium text-purple-600 dark:text-purple-300">
+              Score: {score}
+            </span>
+            {(currentCard + 1 < flashcards.length) && <><div className="w-px h-6 bg-gray-200/50 dark:bg-gray-600/50" />
+            <span className="text-sm text-gray-600 dark:text-gray-300">
+              Card {currentCard + 1}/{flashcards.length - 1}
+            </span></>}
+          </div>
+        </motion.div>
+
+        {/*currentCard + 1 < flashcards.length && (
           <div className="flex justify-between mb-6">
             <button
               onClick={() => {
@@ -235,7 +253,7 @@ export default function FlashcardsView({ id }: { id: string }) {
               Next Card
             </button>
           </div>
-        )}
+        )*/}
 
         {currentCard + 1 < flashcards.length ? (
           <motion.div
@@ -243,55 +261,47 @@ export default function FlashcardsView({ id }: { id: string }) {
             initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 1.05, opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6"
+            className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl rounded-2xl shadow-xl border border-gray-100/50 dark:border-gray-700/30 p-6"
           >
-            <div className="mb-4">
-              <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700 mb-4">
-                <div
-                  className="bg-blue-600 h-2.5 rounded-full transition-all duration-500"
-                  style={{
+            {/* Progress Bar */}
+            <div className="mb-6 space-y-4">
+              <div className="w-full bg-gray-200/50 dark:bg-gray-700/50 rounded-full h-2">
+                <motion.div
+                  className="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full"
+                  initial={{ width: 0 }}
+                  animate={{
                     width: `${
                       ((currentCard + 1) / (flashcards.length - 1)) * 100
                     }%`,
                   }}
+                  transition={{ duration: 0.5 }}
                 />
               </div>
 
               <div className="flex justify-between items-center">
-                <div className="text-gray-600 dark:text-gray-400">
-                  Card {currentCard + 1} of {flashcards.length - 1}
-                </div>
                 <button
                   onClick={() => playSound(flashcards[currentCard].ttsContent)}
-                  className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  className="p-2 cursor-pointer rounded-full bg-gradient-to-br from-purple-100 to-pink-100 dark:from-gray-700 dark:to-gray-600 shadow-sm hover:shadow-md transition-all"
                 >
-                  <SpeakerWaveIcon className="w-6 h-6 text-gray-600 dark:text-gray-300" />
+                  <SpeakerWaveIcon className="w-6 h-6 text-purple-600 dark:text-purple-400" />
                 </button>
               </div>
             </div>
 
-            <div className="text-center mb-8">
-              <h2 className="text-2xl font-bold mb-4 dark:text-white">
-                {flashcards[currentCard].type === "translation"
-                  ? flashcards[currentCard].question
-                  : flashcards[currentCard].question
-                      .split("_____")
-                      .map((part, i) => (
-                        <React.Fragment key={i}>
-                          {part}
-                          {i === 0 && <span className="underline">_____</span>}
-                        </React.Fragment>
-                      ))}
+            {/* Question */}
+            <div className="text-center mb-8 space-y-4">
+              <h2 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                {flashcards[currentCard].question}
               </h2>
 
               {/*flashcards[currentCard].context && (
-                <p className="text-gray-600 dark:text-gray-400 mb-4 italic">
+                <p className="text-gray-600 dark:text-gray-400 italic">
                   "{flashcards[currentCard].context}"
                 </p>
               )*/}
             </div>
 
+            {/* Feedback Message */}
             <div className="text-center mb-4">
               <AnimatePresence>
                 {showAnswer && (
@@ -299,47 +309,40 @@ export default function FlashcardsView({ id }: { id: string }) {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
-                    className="mt-4 text-center font-semibold dark:text-white"
+                    className={`mt-4 text-center font-semibold p-3 rounded-lg ${
+                      selectedOption === flashcards[currentCard].answer
+                        ? "bg-green-50/50 dark:bg-green-900/20 text-green-700 dark:text-green-300"
+                        : "bg-red-50/50 dark:bg-red-900/20 text-red-700 dark:text-red-300"
+                    }`}
                   >
-                    {selectedOption === flashcards[currentCard].answer ? (
-                      <span className="text-green-600 dark:text-green-400">
-                        ✓ Correct!
-                      </span>
-                    ) : (
-                      <div>
-                        <span className="text-red-600 dark:text-red-400">
-                          ✗ Incorrect.{" "}
-                        </span>
-                        <span>Answer: </span>
-                        <span className="text-blue-600 dark:text-blue-400">
-                          {flashcards[currentCard].answer}
-                        </span>
-                      </div>
-                    )}
+                    {selectedOption === flashcards[currentCard].answer
+                      ? "✓ Correct! Well done!"
+                      : `✗ Answer: ${flashcards[currentCard].answer}`}
                   </motion.div>
                 )}
               </AnimatePresence>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Options Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {flashcards[currentCard].options.map((option, i) => (
                 <motion.button
                   key={i}
                   onClick={() => handleAnswer(option)}
                   disabled={showAnswer}
-                  whileHover={{ scale: selectedOption ? 1 : 1.02 }}
-                  whileTap={{ scale: selectedOption ? 1 : 0.98 }}
-                  className={`p-3 rounded-lg text-left transition-all ${
+                  whileHover={{ scale: selectedOption ? 1 : 1.05 }}
+                  whileTap={{ scale: selectedOption ? 1 : 0.95 }}
+                  className={`p-4 rounded-xl cursor-pointer text-left transition-all ${
                     selectedOption === option
                       ? option === flashcards[currentCard].answer
-                        ? "bg-green-100 dark:bg-green-800 text-green-900 dark:text-green-200"
-                        : "bg-red-100 dark:bg-red-800 text-red-900 dark:text-red-200"
-                      : "bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600"
-                  } ${
-                    selectedOption ? "cursor-not-allowed" : "cursor-pointer"
-                  }`}
+                        ? "bg-green-100/80 dark:bg-green-800/80 ring-2 ring-green-500/30"
+                        : "bg-red-100/80 dark:bg-red-800/80 ring-2 ring-red-500/30"
+                      : "bg-gray-100/80 dark:bg-gray-700/80 hover:bg-gray-200/50 dark:hover:bg-gray-600/50"
+                  } backdrop-blur-sm`}
                 >
-                  {option}
+                  <span className="font-medium text-gray-800 dark:text-gray-100">
+                    {option}
+                  </span>
                 </motion.button>
               ))}
             </div>
@@ -348,8 +351,7 @@ export default function FlashcardsView({ id }: { id: string }) {
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            className="text-center bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-xl backdrop-blur-lg border border-gray-100 dark:border-gray-700"
+            className="text-center bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl rounded-2xl p-8 shadow-2xl border border-gray-100/50 dark:border-gray-700/30"
           >
             {/* Victory Animation */}
             <motion.div
@@ -416,7 +418,7 @@ export default function FlashcardsView({ id }: { id: string }) {
                     setCurrentCard(0);
                     setScore(0);
                   }}
-                  className="px-8 py-3 cursor-pointer bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl shadow-lg hover:shadow-xl transition-all"
+                  className="px-8 py-3 cursor-pointer bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-medium rounded-xl shadow-sm hover:shadow-md transition-all"
                 >
                   Retry Challenge
                 </motion.button>
@@ -471,6 +473,20 @@ export default function FlashcardsView({ id }: { id: string }) {
           </motion.div>
         )}
       </div>
+      
+      <style jsx global>{`
+        @keyframes float {
+          0%, 100% { transform: translateY(0) rotate(0deg); }
+          33% { transform: translateY(-20px) rotate(3deg); }
+          66% { transform: translateY(20px) rotate(-3deg); }
+        }
+        .animate-float {
+          animation: float 12s infinite ease-in-out;
+        }
+        .animate-float-delayed {
+          animation: float 14s 2s infinite ease-in-out;
+        }
+      `}</style>
     </div>
   );
 }
