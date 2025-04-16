@@ -2,7 +2,12 @@ import Link from "next/link";
 import { IArticle } from "@/lib/db/types";
 import { formatDate } from "@/lib/utils";
 import { useState, useEffect } from "react";
-import { Trash2, Clock, AlertTriangle } from "react-feather";
+import { Trash2, AlertTriangle } from "react-feather";
+import {
+  CalendarDaysIcon,
+  ClockIcon,
+  DocumentTextIcon,
+} from "@heroicons/react/24/outline";
 
 export default function ArticleItem({
   article,
@@ -48,16 +53,27 @@ export default function ArticleItem({
             <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-2 transition-colors group-hover:text-purple-600 dark:group-hover:text-purple-400">
               {article.name}
             </h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-2 leading-relaxed">
+            <p className="text-sm italic text-gray-600 dark:text-gray-400 mb-3 line-clamp-2 leading-relaxed">
               {article.original}
             </p>
           </Link>
 
           <div className="flex items-center text-xs text-gray-500 dark:text-gray-400 space-x-2">
-            <Clock className="w-4 h-4" aria-hidden="true" />
-            <time dateTime={article.date_created.toString()}>
-              {formatDate(article.date_created)}
-            </time>
+            <DocumentTextIcon className="w-4 h-4" aria-hidden="true" />
+            <span>{article.word_count} words</span>
+            <ClockIcon className="w-4 h-4" aria-hidden="true" />
+            <span>
+              {Math.ceil((article.word_count || 0) / 200)}
+              {" min read"}
+            </span>
+            {isHovered && (
+              <>
+                <CalendarDaysIcon className="w-4 h-4" aria-hidden="true" />
+                <time dateTime={article.date_created.toString()}>
+                  {formatDate(article.date_created)}
+                </time>
+              </>
+            )}
           </div>
         </div>
 
@@ -80,20 +96,6 @@ export default function ArticleItem({
             )}
             <span>{confirmDelete ? "Confirm" : "Delete"}</span>
           </button>
-
-          {isHovered && (
-            <span className="text-xs text-gray-400 dark:text-gray-500 transition-opacity">
-              <div className="flex items-center gap-1">
-                <span className="font-medium">{article.word_count} words</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <span className="font-medium">
-                  {"~ "}{Math.ceil((article.word_count || 0) / 200)}
-                </span>
-                <span className="hidden sm:inline">min.</span>
-              </div>
-            </span>
-          )}
         </div>
       </div>
 

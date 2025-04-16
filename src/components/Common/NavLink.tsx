@@ -5,11 +5,13 @@ export default function NavLink({
   currentView,
   targetView,
   children,
+  className,
 }: {
   href: string;
   currentView: string;
   targetView: string;
   children: React.ReactNode;
+  className?: string;
 }) {
   const isActive = currentView === targetView;
 
@@ -18,9 +20,9 @@ export default function NavLink({
       href={href}
       className={`px-3 py-2 rounded-md text-sm font-medium ${
         isActive
-          ? "text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20"
-          : "text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700/20"
-      } transition-colors duration-200`}
+          ? "text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/20"
+          : "text-gray-600 hover:text-purple-900 dark:text-purple-300 dark:hover:text-purple-100 hover:bg-purple-50 dark:hover:bg-purple-700/20"
+      } transition-colors duration-200 ${className ? className : ''}`}
     >
       {children}
     </Link>
