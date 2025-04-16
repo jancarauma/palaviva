@@ -14,7 +14,7 @@ import { getTranslationSuggestions } from "@/lib/translation";
 import { LearningProgress } from "@/components/ArticlePage/LearningProgress";
 import { PlaybackControls } from "@/components/ArticlePage/PlaybackControls";
 import { PaginationControls } from "@/components/ArticlePage/PaginationControls";
-import { ModalOverlay } from "./ModalOverlay";
+//import { ModalOverlay } from "./ModalOverlay";
 import { SuggestionsList } from "./SuggestionList";
 import { ComfortLevelSelector } from "./ComfortSelector";
 import { TranslationInput } from "./TranslationInput";
