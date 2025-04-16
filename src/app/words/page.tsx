@@ -428,13 +428,13 @@ export default function WordsPage() {
                     <div
                       className="w-3 h-3 rounded-full animate-pulse"
                       style={{
-                        backgroundColor: stat.level.hoverColor,
-                        boxShadow: `0 0 12px ${stat.level.hoverColor}80`,
+                        backgroundColor: stat.level.hoverColor ? stat.level.hoverColor : "#e5e7eb",
+                        boxShadow: `0 0 12px ${stat.level.hoverColor ? stat.level.hoverColor : "#e5e7eb"}80`,
                       }}
                     ></div>
                     <span
                       className="text-sm"
-                      style={{ color: stat.level.hoverColor }}
+                      style={{ color: stat.level.hoverColor ? stat.level.hoverColor : "#e5e7eb" }}
                     >
                       {stat.level.name}
                     </span>
@@ -479,7 +479,7 @@ export default function WordsPage() {
                       key={level}
                       dataKey={`level_${level}`}
                       stackId="a"
-                      fill={hoverColor}
+                      fill={hoverColor ? hoverColor : "#e5e7eb"}
                       radius={[4, 4, 0, 0]}
                     />
                   ))}
@@ -507,7 +507,7 @@ export default function WordsPage() {
                     {comfortData.map((_, index) => (
                       <Cell
                         key={`cell-${index}`}
-                        fill={COMFORT_LEVELS[index].hoverColor}
+                        fill={COMFORT_LEVELS[index].hoverColor ? COMFORT_LEVELS[index].hoverColor : "#e5e7eb"}
                         className="hover:drop-shadow-xl transition-all"
                       />
                     ))}
@@ -616,7 +616,7 @@ export default function WordsPage() {
                         <div
                           className="relative w-8 h-8 flex items-center justify-center"
                           style={{
-                            color: COMFORT_LEVELS[word.comfort - 1].hoverColor,
+                            color: COMFORT_LEVELS[word.comfort - 1].hoverColor ? COMFORT_LEVELS[word.comfort - 1].hoverColor : "#e5e7eb",
                           }}
                         >
                           <svg className="absolute inset-0" viewBox="0 0 32 32">
