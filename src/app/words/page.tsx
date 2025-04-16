@@ -14,10 +14,9 @@ import {
   YAxis,
   Bar,
   CartesianGrid,
-  Legend,
 } from "recharts";
 import { IWord } from "@/lib/db/types";
-import { getComfortColor, getComfortLevelName } from "@/lib/utils";
+import { getComfortLevelName } from "@/lib/utils";
 import { toast, Toaster } from "react-hot-toast";
 import {
   ChevronLeftIcon,
@@ -192,7 +191,7 @@ export default function WordsPage() {
     );
   };
 
-  const stats = {
+  /*const stats = {
     totalWords: words.length,
 
     knownWords: words.filter((w) => w.comfort === 5).length,
@@ -244,7 +243,85 @@ export default function WordsPage() {
 
       return ((currentKnown - previousKnown) / previousKnown) * 100;
     })(),
-  };
+  };*/
+
+  const stats = [
+    {
+      key: "totalWords",
+      label: "Total Words",
+      value: words.length,
+    },
+    {
+      key: "knownWords",
+      label: "Known Words",
+      value: words.filter((w) => w.comfort === 5).length,
+    },
+    {
+      key: "avgComfort",
+      label: "Avg. Comfort",
+      value: avgComfortValue?.toFixed(1) || "0.0",
+      level: avgComfortValue ? getAvgComfortLevel(avgComfortValue) : null,
+    },
+    {
+      key: "mostFrequent",
+      label: "Most Frequent",
+      value: [...words].sort((a, b) => b.count - a.count)[0]?.name || "-",
+    },
+    {
+      key: "newThisWeek",
+      label: "Last 7 Days",
+      value: words.filter((w) => {
+        const oneWeekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+        return w.comfort === 5 && w.date_created > oneWeekAgo;
+      }).length,
+    },
+    {
+      key: "newThisMonth",
+      label: "Last Month",
+      value: words.filter((w) => {
+        const oneMonthAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
+        return w.comfort === 5 && w.date_created > oneMonthAgo;
+      }).length,
+    },
+    {
+      key: "newThisYear",
+      label: "Last Year",
+      value: words.filter((w) => {
+        const oneYearAgo = Date.now() - 365 * 24 * 60 * 60 * 1000;
+        return w.comfort === 5 && w.date_created > oneYearAgo;
+      }).length,
+    },
+    {
+      key: "growthRate",
+      label: "Growth Rate",
+      value: (() => {
+        const now = Date.now();
+
+        // last 30 days
+        const currentPeriodStart = now - 30 * 24 * 60 * 60 * 1000;
+        const currentKnown = words.filter(
+          (w) => w.comfort === 5 && w.date_created >= currentPeriodStart
+        ).length;
+
+        // 30-60 days ago
+        const previousPeriodStart = now - 60 * 24 * 60 * 60 * 1000;
+        const previousKnown = words.filter(
+          (w) =>
+            w.comfort === 5 &&
+            w.date_created >= previousPeriodStart &&
+            w.date_created < currentPeriodStart
+        ).length;
+
+        // Avoid division by zero
+        if (previousKnown === 0) {
+          return currentKnown > 0 ? 100 : 0; // 100% if there is new learned words, 0% otherwise
+        }
+
+        return ((currentKnown - previousKnown) / (previousKnown ?? 1)) * 100;
+      })(),
+      suffix: "%",
+    },
+  ];
 
   const handleSort = useCallback((key: keyof IWord) => {
     setSortConfig((prev) => ({
@@ -256,6 +333,7 @@ export default function WordsPage() {
   const updateComfort = useCallback(
     async (wordId: number, newComfort: number) => {
       setUpdating(wordId);
+      console.info("wordId", updating);
       try {
         await db.words.update(wordId, { comfort: newComfort });
         setWords((prev) =>
@@ -298,357 +376,289 @@ export default function WordsPage() {
   if (loading) return <LoadingSkeleton />;
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50/30 via-blue-50/30 to-pink-50/30 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
       <Toaster position="top-center" toastOptions={{ duration: 3000 }} />
-      <div className="max-w-6xl mx-auto">
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-6">
-            <Link
-              href="/"
-              className="inline-flex items-center text-purple-600 dark:text-purple-400 hover:text-purple-700"
-            >
-              <ChevronLeftIcon className="w-5 h-5 mr-2" />
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Back Button */}
+        <div className="flex items-center justify-between mb-6">
+          <Link
+            href="/"
+            className="group inline-flex items-center text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-500 transition-all"
+          >
+            <ChevronLeftIcon className="w-5 h-5 mr-2 transition-transform group-hover:-translate-x-1" />
+            <span className="bg-gradient-to-r from-purple-600 to-purple-600 bg-[length:0_2px] bg-left-bottom bg-no-repeat transition-[background-size] group-hover:bg-[length:100%_2px]">
               Back to Texts
-            </Link>
-          </div>
-          <div className="flex items-center gap-3 mb-6">
-            <DocumentChartBarIcon className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+            </span>
+          </Link>
+        </div>
+
+        {/* Header Section */}
+        <div className="mb-12 relative">
+          <div className="flex items-center gap-4 mb-6">
+            <div className="p-3 bg-purple-600/10 dark:bg-purple-400/10 rounded-xl">
+              <DocumentChartBarIcon className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+            </div>
             <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-fuchsia-600 bg-clip-text text-transparent dark:from-purple-400 dark:to-fuchsia-400">
               Words in {targetLanguageName}
             </h1>
           </div>
+
+          {/* Animated background elements */}
+          <div className="absolute -top-24 -right-32 w-96 h-96 bg-purple-100/50 dark:bg-purple-900/20 rounded-full blur-3xl animate-float -z-10"></div>
         </div>
 
-        {/* Statistics Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
-            <div className="text-gray-500 dark:text-gray-300 text-sm mb-2 capitalize">
-              Total Words
-            </div>
-            <div className="text-2xl font-bold dark:text-white">
-              {safeStat(stats.totalWords, (n) => n.toFixed(0))}
-            </div>
-          </div>
-          <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
-            <div className="text-gray-500 dark:text-gray-300 text-sm mb-2 capitalize">
-              Known Words
-            </div>
-            <div className="text-2xl font-bold dark:text-white">
-              {safeStat(stats.knownWords, (n) => n.toFixed(0))}
-            </div>
-          </div>
-          <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
-            <div className="text-gray-500 dark:text-gray-300 text-sm mb-2 capitalize">
-              Avg. Comfort
-            </div>
-            <div className="flex items-center gap-2">
-              {stats.avgComfort.level ? (
-                <>
-                  <div
-                    className="w-3 h-3 rounded-full"
-                    style={{
-                      backgroundColor: stats.avgComfort.level.hoverColor,
-                      boxShadow: `0 0 8px ${stats.avgComfort.level.hoverColor}80`,
-                    }}
-                  ></div>
-                  <div className="text-2xl font-bold dark:text-white">
-                    {/*<span className="mr-2">{stats.avgComfort.value}</span>*/}
+        {/* Enhanced Statistics Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          {stats.map((stat) => (
+            <div
+              key={stat.key}
+              className="bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm p-6 rounded-2xl border border-gray-100/50 dark:border-gray-700/30 hover:shadow-lg transition-all"
+            >
+              <div className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
+                {stat.label}
+              </div>
+              <div className="text-2xl font-bold dark:text-white">
+                {typeof stat.value === "number"
+                  ? stat.value.toLocaleString()
+                  : stat.value}
+                {stat.suffix}
+
+                {stat.key === "avgComfort" && stat.level && (
+                  <div className="mt-2 flex items-center gap-2">
+                    <div
+                      className="w-3 h-3 rounded-full animate-pulse"
+                      style={{
+                        backgroundColor: stat.level.hoverColor,
+                        boxShadow: `0 0 12px ${stat.level.hoverColor}80`,
+                      }}
+                    ></div>
                     <span
-                      //className="text-sm font-medium"
-                      className="mr-2"
-                      style={{ color: stats.avgComfort.level.hoverColor }}
+                      className="text-sm"
+                      style={{ color: stat.level.hoverColor }}
                     >
-                      {stats.avgComfort.level.name}
+                      {stat.level.name}
                     </span>
                   </div>
-                </>
-              ) : (
-                <div className="text-2xl font-bold dark:text-white">-</div>
-              )}
+                )}
+              </div>
             </div>
-          </div>
-          <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
-            <div className="text-gray-500 dark:text-gray-300 text-sm mb-2 capitalize">
-              Most Frequent
-            </div>
-            <div className="text-2xl font-bold truncate dark:text-white">
-              {stats.mostFrequent}
-            </div>
-          </div>
-          <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
-            <div className="text-gray-500 dark:text-gray-300 text-sm mb-2 capitalize">
-              Last 7 days
-            </div>
-            <div className="text-2xl font-bold dark:text-white">
-              {stats.newThisWeek}
-            </div>
-          </div>
-          <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
-            <div className="text-gray-500 dark:text-gray-300 text-sm mb-2 capitalize">
-              Last Month
-            </div>
-            <div className="text-2xl font-bold dark:text-white">
-              {stats.newThisMonth}
-            </div>
-          </div>
-          <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
-            <div className="text-gray-500 dark:text-gray-300 text-sm mb-2 capitalize">
-              Last Year
-            </div>
-            <div className="text-2xl font-bold dark:text-white">
-              {stats.newThisYear}
-            </div>
-          </div>
-          <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
-            <div className="text-gray-500 dark:text-gray-300 text-sm mb-2 capitalize">
-              Growth Rate
-            </div>
-            <div className="text-2xl font-bold dark:text-white">
-              {safeStat(stats.growthRate, (n) => n.toFixed(1))}
-              {" %"}
-            </div>
-          </div>
+          ))}
         </div>
 
-        {/* Timeline Distribution Chart */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-          <div className="mb-6 bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+        {/* Enhanced Charts Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          <div className="bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm p-6 rounded-2xl border border-gray-100/50 dark:border-gray-700/30">
             <h3 className="text-lg font-semibold mb-4 dark:text-white">
-              Comfort Level Evolution
+              Comfort Evolution
             </h3>
-            <ResponsiveContainer width="100%" height={400}>
-              <BarChart data={timelineData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis
-                  dataKey="month"
-                  tickFormatter={(value, index) => {
-                    const year = timelineData[index].year.toString().slice(2);
-                    return `${value} '${year}`;
-                  }}
-                />
-                <YAxis />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "#1f2937",
-                    border: "none",
-                    borderRadius: "8px",
-                  }}
-                  formatter={(value: number, name: string) => [
-                    value,
-                    COMFORT_LEVELS.find((cl) => `level_${cl.level}` === name)
-                      ?.name || name,
-                  ]}
-                />
-                <Legend
-                  formatter={(value: string) =>
-                    COMFORT_LEVELS.find((cl) => `level_${cl.level}` === value)
-                      ?.name || value
-                  }
-                  wrapperStyle={{ paddingTop: "20px" }}
-                />
-                {COMFORT_LEVELS.map(({ level, hoverColor }) => (
-                  <Bar
-                    key={level}
-                    dataKey={`level_${level}`}
-                    name={`level_${level}`}
-                    fill={hoverColor}
-                    stackId="a"
-                    radius={[3, 3, 0, 0]}
+            <div className="h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={timelineData}>
+                  <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.1} />
+                  <XAxis
+                    dataKey="month"
+                    tick={{ fill: "#6B7280" }}
+                    tickFormatter={(value, index) =>
+                      `${value} '${timelineData[index].year
+                        .toString()
+                        .slice(2)}`
+                    }
                   />
-                ))}
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-
-          {/* Comfort Distribution Chart */}
-          <div className="mb-6 bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
-            <h3 className="text-lg font-semibold mb-4 dark:text-white">
-              Comfort Level Distribution
-            </h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={comfortData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={80}
-                  paddingAngle={5}
-                  dataKey="value"
-                >
-                  {comfortData.map((entry, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={COMFORT_LEVELS[index].hoverColor} // Usando as cores do seu padrão
+                  <YAxis tick={{ fill: "#6B7280" }} />
+                  <Tooltip
+                    contentStyle={{
+                      background: "rgba(255, 255, 255, 0.9)",
+                      backdropFilter: "blur(4px)",
+                      border: "none",
+                      borderRadius: "8px",
+                      boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+                    }}
+                  />
+                  {COMFORT_LEVELS.map(({ level, hoverColor }) => (
+                    <Bar
+                      key={level}
+                      dataKey={`level_${level}`}
+                      stackId="a"
+                      fill={hoverColor}
+                      radius={[4, 4, 0, 0]}
                     />
                   ))}
-                </Pie>
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "#1f2937",
-                    border: "none",
-                    borderRadius: "8px",
-                  }}
-                  formatter={(value: number, name: string) => [
-                    value,
-                    COMFORT_LEVELS.find((cl) => `level_${cl.level}` === name)
-                      ?.name || name,
-                  ]}
-                />
-                <Legend
-                  formatter={(value: string) =>
-                    COMFORT_LEVELS.find((cl) => `level_${cl.level}` === value)
-                      ?.name || value
-                  }
-                  wrapperStyle={{ paddingTop: "20px" }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
           </div>
-        </div>
 
-        {/* Filters */}
-        <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4 bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm">
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Search words..."
-              className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 
-               dark:bg-gray-700/50 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-            <MagnifyingGlassIcon className="w-5 h-5 absolute left-3 top-2.5 text-gray-400 dark:text-gray-500" />
-          </div>
-          <select
-            className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 
-             dark:bg-gray-700/50 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-            value={comfortFilter || ""}
-            onChange={(e) =>
-              setComfortFilter(e.target.value ? Number(e.target.value) : null)
-            }
-          >
-            <option value="">All Comfort Levels</option>
-            {[/*1, */ 2, 3, 4, 5].map((level) => (
-              <option
-                key={level}
-                value={level}
-                className="flex items-center gap-2"
-              >
-                <span
-                  className={`w-3 h-3 rounded-full ${getComfortColor(level)}`}
-                />
-                {getComfortLevelName(level)}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Words Table */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden">
-          <div className="overflow-x-auto relative max-h-[600px]">
-            <table className="w-full min-w-[800px]">
-              <thead className="bg-gray-50 dark:bg-gray-700 sticky top-0">
-                <tr>
-                  {(["name", "translation", "comfort", "count"] as const).map(
-                    (key) => (
-                      <th
-                        key={key}
-                        className="px-6 py-4 text-sm font-medium text-gray-500 dark:text-gray-300 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600"
-                        onClick={() => handleSort(key)}
-                      >
-                        <div className="flex items-center gap-2">
-                          {key.charAt(0).toUpperCase() + key.slice(1)}
-                          <SortIndicator
-                            isActive={sortConfig.key === key}
-                            direction={
-                              sortConfig.key === key
-                                ? sortConfig.direction
-                                : undefined
-                            }
-                          />
-                        </div>
-                      </th>
-                    )
-                  )}
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">
-                    Action
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                {paginatedWords.map((word) => (
-                  <tr
-                    key={word.id}
-                    className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+          <div className="bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm p-6 rounded-2xl border border-gray-100/50 dark:border-gray-700/30">
+            <h3 className="text-lg font-semibold mb-4 dark:text-white">
+              Comfort Distribution
+            </h3>
+            <div className="h-80 relative">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={comfortData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={80}
+                    paddingAngle={2}
+                    dataKey="value"
                   >
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-200">
+                    {comfortData.map((_, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={COMFORT_LEVELS[index].hoverColor}
+                        className="hover:drop-shadow-xl transition-all"
+                      />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    contentStyle={{
+                      background: "rgba(255, 255, 255, 0.9)",
+                      backdropFilter: "blur(4px)",
+                      border: "none",
+                      borderRadius: "8px",
+                      boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+                    }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
+
+        {/* Enhanced Filters */}
+        <div className="mb-8 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm p-6 rounded-2xl border border-gray-100/50 dark:border-gray-700/30">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Search words..."
+                className="w-full pl-12 pr-4 py-3 rounded-xl bg-white/70 dark:bg-gray-700/30 border border-gray-200/50 dark:border-gray-600/30 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              <MagnifyingGlassIcon className="w-5 h-5 absolute left-4 top-3.5 text-gray-400 dark:text-gray-500" />
+            </div>
+            <select
+              className="w-full px-4 py-3 rounded-xl bg-white/70 dark:bg-gray-700/30 border border-gray-200/50 dark:border-gray-600/30 focus:ring-2 focus:ring-purple-500 focus:border-transparent appearance-none bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxwb2x5bGluZSBwb2ludHM9IjYgOSAxMiAxNSAxOCA5Ii8+PC9zdmc+')] bg-no-repeat bg-[center_right_1rem]"
+              value={comfortFilter || ""}
+              onChange={(e) =>
+                setComfortFilter(e.target.value ? Number(e.target.value) : null)
+              }
+            >
+              <option value="">All Comfort Levels</option>
+              {COMFORT_LEVELS.slice(1).map((level) => (
+                <option key={level.level} value={level.level}>
+                  {level.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {/* Enhanced Words Table */}
+        <div className="bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm rounded-2xl border border-gray-100/50 dark:border-gray-700/30 overflow-hidden">
+          <div className="overflow-x-auto relative">
+            <div className="min-w-[1000px]">
+              {/* Table Header */}
+              <div className="grid grid-cols-12 gap-4 px-6 py-4 bg-gray-50/50 dark:bg-gray-700/50 border-b border-gray-100/50 dark:border-gray-600/30 font-medium text-sm text-gray-500 dark:text-gray-400">
+                {["Word", "Translation", "Comfort", "Count", "Actions"].map(
+                  (header) => (
+                    <div key={header} className="col-span-2 last:col-span-4">
+                      {header}
+                    </div>
+                  )
+                )}
+              </div>
+
+              {/* Table Body */}
+              <div className="divide-y divide-gray-100/50 dark:divide-gray-700/30">
+                {paginatedWords.map((word) => (
+                  <div
+                    key={word.id}
+                    className="grid grid-cols-12 gap-4 px-6 py-4 hover:bg-gray-50/30 dark:hover:bg-gray-700/30 transition-colors"
+                  >
+                    {/* Word */}
+                    <div className="col-span-2 font-medium dark:text-white">
                       {word.name}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-200">
+                    </div>
+
+                    {/* Translation */}
+                    <div className="col-span-2">
                       {selectedWord?.id === word.id ? (
                         <input
                           type="text"
                           value={editTranslation}
                           onChange={(e) => setEditTranslation(e.target.value)}
-                          placeholder="Add translation..."
-                          className="w-full px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-700 dark:bg-gray-700/50 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                           onBlur={() => updateTranslation(word.id!)}
                           onKeyPress={(e) =>
                             e.key === "Enter" && updateTranslation(word.id!)
                           }
+                          className="w-full px-3 py-1.5 rounded-lg bg-white/70 dark:bg-gray-700/30 border border-gray-200/50 dark:border-gray-600/30 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                         />
                       ) : (
-                        <span
-                          className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 px-2 py-1 rounded"
+                        <button
                           onClick={() => {
                             setSelectedWord(word);
                             setEditTranslation(word.translation || "");
                           }}
+                          className="text-left w-full px-3 py-1.5 rounded-lg hover:bg-gray-100/30 dark:hover:bg-gray-600/30 transition-colors"
                         >
                           {word.translation || "Add translation"}
-                        </span>
+                        </button>
                       )}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-200">
-                      <div className="flex items-center gap-2">
-                        <span
-                          className={`w-3 h-3 rounded-full ${getComfortColor(
-                            word.comfort
-                          )}`}
-                        />
+                    </div>
+
+                    {/* Comfort Level */}
+                    <div className="col-span-2">
+                      <div className="flex items-center gap-3">
+                        <div
+                          className="relative w-8 h-8 flex items-center justify-center"
+                          style={{
+                            color: COMFORT_LEVELS[word.comfort - 1].hoverColor,
+                          }}
+                        >
+                          <svg className="absolute inset-0" viewBox="0 0 32 32">
+                            <circle
+                              cx="16"
+                              cy="16"
+                              r="14"
+                              className="stroke-current opacity-20"
+                              strokeWidth="4"
+                              fill="none"
+                            />
+                          </svg>
+                          <span className="text-sm font-medium">
+                            {word.comfort}
+                          </span>
+                        </div>
                         <select
                           value={word.comfort}
                           onChange={(e) =>
                             updateComfort(word.id!, Number(e.target.value))
                           }
-                          className="border rounded px-2 py-1 dark:bg-gray-600 dark:text-white cursor-pointer"
-                          disabled={updating === word.id}
+                          className="bg-transparent border-none focus:ring-0 cursor-pointer"
                         >
-                          {updating === word.id ? (
-                            <option>Updating...</option>
-                          ) : (
-                            [1, 2, 3, 4, 5].map((num) => (
-                              <option key={num} value={num}>
-                                {num} ({getComfortLevelName(num)})
-                              </option>
-                            ))
-                          )}
+                          {[1, 2, 3, 4, 5].map((num) => (
+                            <option key={num} value={num}>
+                              {getComfortLevelName(num)}
+                            </option>
+                          ))}
                         </select>
                       </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-200">
+                    </div>
+
+                    {/* Count */}
+                    <div className="col-span-2 dark:text-white">
                       {word.count}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-200">
+                    </div>
+
+                    {/* Actions */}
+                    <div className="col-span-4 flex items-center gap-4">
                       <button
-                        className="text-red-500 hover:text-red-700 dark:text-red-400 px-2 py-1 rounded hover:bg-red-50 dark:hover:bg-red-900 cursor-pointer"
                         onClick={() => {
-                          if (
-                            confirm(
-                              "Are you sure you want to delete this word?"
-                            )
-                          ) {
+                          if (confirm("Delete this word?")) {
                             db.words.delete(word.id!);
                             setWords((prev) =>
                               prev.filter((w) => w.id !== word.id)
@@ -656,59 +666,92 @@ export default function WordsPage() {
                             toast.success("Word deleted");
                           }
                         }}
+                        className="text-red-500 hover:text-red-700 dark:text-red-400 px-3 py-1 rounded-md hover:bg-red-50/30 dark:hover:bg-red-900/30 transition-colors"
                       >
                         Delete
                       </button>
-                    </td>
-                  </tr>
+                    </div>
+                  </div>
                 ))}
-              </tbody>
-            </table>
-            {filteredWords.length === 0 && (
-              <div className="p-8 text-center">
-                <div className="text-4xl mb-4">📭</div>
-                <h3 className="text-xl font-medium dark:text-white">
-                  No words found
-                </h3>
-                <p className="mt-2 text-gray-500 dark:text-gray-400">
-                  Try adjusting your filters or add new words through articles
-                </p>
               </div>
-            )}
+
+              {/* Empty State */}
+              {filteredWords.length === 0 && (
+                <div className="p-12 text-center">
+                  <div className="text-4xl mb-4">📭</div>
+                  <h3 className="text-xl font-medium dark:text-white mb-2">
+                    No words found
+                  </h3>
+                  <p className="text-gray-500 dark:text-gray-400">
+                    Try adjusting your filters or add new words through articles
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* Pagination */}
-          <div className="flex justify-between items-center p-4 bg-gray-50 dark:bg-gray-700">
-            <button
-              onClick={() => setCurrentPage((p) => Math.max(0, p - 1))}
-              disabled={currentPage === 0}
-              className="px-4 py-2 rounded-lg bg-white dark:bg-gray-600 shadow-sm disabled:opacity-50 cursor-pointer"
-            >
-              Previous
-            </button>
-            <span className="text-gray-700 dark:text-gray-300">
+          {/* Enhanced Pagination */}
+          <div className="flex justify-between items-center p-4 bg-gray-50/50 dark:bg-gray-700/50 border-t border-gray-100/50 dark:border-gray-600/30">
+            <div className="flex gap-2">
+              <button
+                onClick={() => setCurrentPage((p) => Math.max(0, p - 1))}
+                disabled={currentPage === 0}
+                className="px-4 py-2 rounded-lg bg-white/70 dark:bg-gray-600/30 shadow-sm hover:shadow-md disabled:opacity-50 transition-all"
+              >
+                Previous
+              </button>
+              <button
+                onClick={() =>
+                  setCurrentPage((p) =>
+                    Math.min(
+                      p + 1,
+                      Math.ceil(filteredWords.length / PAGE_SIZE) - 1
+                    )
+                  )
+                }
+                disabled={
+                  currentPage ===
+                  Math.ceil(filteredWords.length / PAGE_SIZE) - 1
+                }
+                className="px-4 py-2 rounded-lg bg-white/70 dark:bg-gray-600/30 shadow-sm hover:shadow-md disabled:opacity-50 transition-all"
+              >
+                Next
+              </button>
+            </div>
+            <span className="text-gray-500 dark:text-gray-400">
               Page {currentPage + 1} of{" "}
               {Math.ceil(filteredWords.length / PAGE_SIZE)}
             </span>
-            <button
-              onClick={() =>
-                setCurrentPage((p) =>
-                  Math.min(
-                    p + 1,
-                    Math.ceil(filteredWords.length / PAGE_SIZE) - 1
-                  )
-                )
-              }
-              disabled={
-                currentPage === Math.ceil(filteredWords.length / PAGE_SIZE) - 1
-              }
-              className="px-4 py-2 rounded-lg bg-white dark:bg-gray-600 shadow-sm disabled:opacity-50 cursor-pointer"
-            >
-              Next
-            </button>
           </div>
         </div>
       </div>
+
+      {/* Animated background elements */}
+      <div className="fixed inset-0 -z-10 opacity-20 dark:opacity-30">
+        <div className="absolute top-1/3 left-1/4 w-96 h-96 bg-purple-100/50 dark:bg-purple-900/20 rounded-full blur-3xl animate-float"></div>
+        <div className="absolute top-1/2 right-1/4 w-64 h-64 bg-pink-100/50 dark:bg-pink-900/20 rounded-full blur-3xl animate-float-delayed"></div>
+      </div>
+
+      <style jsx global>{`
+        @keyframes float {
+          0%,
+          100% {
+            transform: translateY(0) rotate(0deg);
+          }
+          33% {
+            transform: translateY(-20px) rotate(3deg);
+          }
+          66% {
+            transform: translateY(20px) rotate(-3deg);
+          }
+        }
+        .animate-float {
+          animation: float 12s infinite ease-in-out;
+        }
+        .animate-float-delayed {
+          animation: float 14s 2s infinite ease-in-out;
+        }
+      `}</style>
     </div>
   );
 }

@@ -21,7 +21,7 @@ export default function HomePage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [updateAvailable, setUpdateAvailable] = useState(false);
 
-  const currentView = pathname.split("/").pop() || "article-list";
+  const currentView = pathname.split("/").pop() || "articles";
 
   {
     /* Load Settings from DB */
@@ -227,11 +227,11 @@ export default function HomePage() {
 
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center space-x-8">
-              {["article-list", "article-create", "words", "settings"].map(
+              {["articles", "create", "words", "settings"].map(
                 (view) => (
                   <NavLink
                     key={view}
-                    href={`/${view === "article-list" ? "" : view}`}
+                    href={`/${view === "articles" ? "" : view}`}
                     currentView={currentView}
                     targetView={view}
                     className="relative px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 transition-colors duration-200 group"
@@ -282,11 +282,11 @@ export default function HomePage() {
           } md:hidden overflow-hidden transition-all duration-300 ease-out`}
         >
           <div className="px-4 pb-4 pt-2 space-y-2">
-            {["article-list", "article-create", "words", "settings"].map(
+            {["articles", "create", "words", "settings"].map(
               (view) => (
                 <Link
                   key={view}
-                  href={`/${view === "article-list" ? "" : view}`}
+                  href={`/${view === "articles" ? "" : view}`}
                   className={`block px-4 py-3 rounded-xl text-base font-medium ${
                     currentView === view
                       ? "text-purple-600 dark:text-purple-400 bg-purple-50/50 dark:bg-purple-900/20"
@@ -305,7 +305,7 @@ export default function HomePage() {
 
       {/* Main Content */}
       <main className="flex-1 max-w-7xl mx-auto p-4 w-full">
-        {currentView === "article-list" && (
+        {currentView === "articles" && (
           <ArticleListView
             articles={filteredArticles}
             searchQuery={searchQuery}

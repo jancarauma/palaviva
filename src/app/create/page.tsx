@@ -8,7 +8,10 @@ import { toast, Toaster } from "react-hot-toast";
 import { ChevronLeftIcon, DocumentTextIcon } from "@heroicons/react/24/outline";
 
 const countWords = (text: string): number => {
-  return text.trim().split(/\s+/).filter(word => word.length > 0).length;
+  return text
+    .trim()
+    .split(/\s+/)
+    .filter((word) => word.length > 0).length;
 };
 
 export default function CreatePage() {
@@ -24,6 +27,7 @@ export default function CreatePage() {
   const [wordCount, setWordCount] = useState(0);
   const [charCount, setCharCount] = useState(0);
   const [isLoadingSettings, setIsLoadingSettings] = useState(true);
+  const [textDirection, setTextDirection] = useState<"ltr" | "rtl">("ltr");
 
   useEffect(() => {
     const loadSettings = async () => {
@@ -51,7 +55,6 @@ export default function CreatePage() {
           .first();
 
         setTargetLanguageName(language?.name || "Unknown");
-
       } catch (error) {
         console.error("Error loading settings:", error);
         toast.error("Failed to load language settings");
@@ -99,16 +102,17 @@ export default function CreatePage() {
         current_page: 0,
         word_count: wordCount,
         reading_time: Math.ceil(wordCount / 200),
+        direction: textDirection, // Add direction to your DB schema
       };
 
       await db.settings.update(1, {
-        "user.target-lang": newArticle.language
+        "user.target-lang": newArticle.language,
       });
 
       await db.articles.add(newArticle);
 
       toast.success("Text created successfully!");
-      await new Promise(resolve => setTimeout(resolve, 3000));
+      await new Promise((resolve) => setTimeout(resolve, 3000));
       router.push("/");
     } catch (error) {
       console.error("Error creating article:", error);
@@ -120,7 +124,7 @@ export default function CreatePage() {
 
   const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newContent = e.target.value;
-    setForm(prev => ({ ...prev, content: newContent }));
+    setForm((prev) => ({ ...prev, content: newContent }));
     updateTextStats(newContent);
   };
 
@@ -140,7 +144,7 @@ export default function CreatePage() {
                   <div className="h-16 bg-gray-200 dark:bg-gray-700 rounded-lg" />
                   <div className="h-16 bg-gray-200 dark:bg-gray-700 rounded-lg" />
                 </div>
-                
+
                 <div className="space-y-4">
                   <div className="flex justify-between">
                     <div className="h-6 w-48 bg-gray-200 dark:bg-gray-700 rounded" />
@@ -170,146 +174,182 @@ export default function CreatePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
+    <div className="min-h-screen bg-gradient-to-b from-purple-50/30 via-blue-50/30 to-pink-50/30 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-6">
       <Toaster position="top-center" toastOptions={{ duration: 3000 }} />
       <div className="max-w-4xl mx-auto">
         <div className="mb-8">
           <div className="flex items-center justify-between mb-6">
             <Link
               href="/"
-              className="inline-flex items-center text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-500 transition-colors"
+              className="group inline-flex items-center text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-500 transition-all"
             >
-              <ChevronLeftIcon className="w-5 h-5 mr-2" />
-              Back to Texts
+              <ChevronLeftIcon className="w-5 h-5 mr-2 transition-transform group-hover:-translate-x-1" />
+              <span className="bg-gradient-to-r from-purple-600 to-purple-600 bg-[length:0_2px] bg-left-bottom bg-no-repeat transition-[background-size] group-hover:bg-[length:100%_2px]">
+                Back to Texts
+              </span>
             </Link>
           </div>
 
-          <div className="flex items-center gap-3 mb-6">
-            <DocumentTextIcon className="w-8 h-8 text-purple-600 dark:text-purple-400" />
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-fuchsia-600 bg-clip-text text-transparent dark:from-purple-400 dark:to-fuchsia-400">
-              Create New Text in {targetLanguageName}
+          <div className="flex items-center gap-4 mb-8">
+            <div className="p-3 bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 rounded-xl shadow-sm">
+              <DocumentTextIcon className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+            </div>
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent dark:from-purple-400 dark:to-pink-400">
+              Create New {targetLanguageName} Text
             </h1>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-100 dark:border-gray-700">
-          <form onSubmit={handleSubmit} className="space-y-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Content */}
-              <div className="col-span-2 space-y-6">
-                <div className="md:grid md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Text Title
-                      <span className="text-red-500 ml-1">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={form.title}
-                      onChange={(e) => setForm({ ...form, title: e.target.value })}
-                      className="w-full px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-700 
-                               dark:bg-gray-700/50 focus:ring-2 focus:ring-purple-500 focus:border-transparent
-                               transition-all placeholder-gray-400 dark:placeholder-gray-500"
-                      placeholder="Enter a descriptive title"
-                      required
-                      minLength={3}
-                    />
-                  </div>
+        <div className="relative bg-white/80 dark:bg-gray-800/50 backdrop-blur-sm rounded-2xl shadow-xl p-8 border border-gray-200/30 dark:border-gray-700/30">
+          {/* Floating background elements */}
+          <div className="absolute -top-32 -right-32 w-64 h-64 bg-purple-100/30 dark:bg-purple-900/20 rounded-full blur-3xl opacity-50" />
 
-                  <div>
-                    <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Source (Optional)
-                    </label>
-                    <input
-                      type="text"
-                      value={form.source}
-                      onChange={(e) => setForm({ ...form, source: e.target.value })}
-                      className="w-full px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-700 
-                               dark:bg-gray-700/50 focus:ring-2 focus:ring-purple-500 focus:border-transparent
-                               transition-all placeholder-gray-400 dark:placeholder-gray-500"
-                      placeholder="e.g., Book Title, Website URL"
-                    />
+          <form onSubmit={handleSubmit} className="space-y-8">
+            <div className="grid grid-cols-1 gap-8">
+              {/* Text Direction Toggle */}
+              <div className="flex items-center gap-4">
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Text Direction:
+                </span>
+                <div className="flex gap-2 p-1 bg-gray-100/50 dark:bg-gray-700/30 rounded-lg">
+                  {["ltr", "rtl"].map((dir) => (
+                    <button
+                      key={dir}
+                      type="button"
+                      onClick={() => setTextDirection(dir as "ltr" | "rtl")}
+                      className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
+                        textDirection === dir
+                          ? "bg-purple-600 text-white shadow-inner"
+                          : "text-gray-600 dark:text-gray-300 hover:bg-gray-200/50 dark:hover:bg-gray-700/50"
+                      }`}
+                    >
+                      {dir.toUpperCase()}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Title & Source */}
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Text Title <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={form.title}
+                    onChange={(e) =>
+                      setForm({ ...form, title: e.target.value })
+                    }
+                    className="w-full px-4 py-3 rounded-xl bg-white/50 dark:bg-gray-700/30 backdrop-blur-sm border border-gray-200/30 dark:border-gray-700/50 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all placeholder-gray-400 dark:placeholder-gray-500"
+                    placeholder="Enter a descriptive title"
+                    required
+                    minLength={3}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Source (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    value={form.source}
+                    onChange={(e) =>
+                      setForm({ ...form, source: e.target.value })
+                    }
+                    className="w-full px-4 py-3 rounded-xl bg-white/50 dark:bg-gray-700/30 backdrop-blur-sm border border-gray-200/30 dark:border-gray-700/50 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all placeholder-gray-400 dark:placeholder-gray-500"
+                    placeholder="e.g., Book Title, Website URL"
+                  />
+                </div>
+              </div>
+
+              {/* Content Editor */}
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Content <span className="text-red-500">*</span>
+                  </label>
+                  <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
+                    <div className="flex items-center gap-2 bg-gray-100/50 dark:bg-gray-700/30 px-3 py-1.5 rounded-lg">
+                      <span className="text-purple-600 dark:text-purple-400 font-medium">
+                        {wordCount}
+                      </span>
+                      <span>words</span>
+                    </div>
+                    <div className="flex items-center gap-2 bg-gray-100/50 dark:bg-gray-700/30 px-3 py-1.5 rounded-lg">
+                      <span className="text-purple-600 dark:text-purple-400 font-medium">
+                        {charCount}
+                      </span>
+                      <span>chars</span>
+                    </div>
+                    <div className="flex items-center gap-2 bg-gray-100/50 dark:bg-gray-700/30 px-3 py-1.5 rounded-lg">
+                      <span className="text-purple-600 dark:text-purple-400 font-medium">
+                        {Math.ceil(wordCount / 200)}
+                      </span>
+                      <span>min</span>
+                    </div>
                   </div>
                 </div>
 
-                {/* Stats */}
-                <div className="col-span-2">
-                  <div className="flex justify-between items-center mb-2">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Content
-                      <span className="text-red-500 ml-1">*</span>
-                    </label>
-                    <div className="text-sm text-gray-500 dark:text-gray-400 flex flex-wrap gap-3">
-                      <div className="flex items-center gap-1">
-                        <span className="font-medium">{wordCount}</span>
-                        <span className="hidden sm:inline">words,</span>
-                        <span className="sm:hidden">words,</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <span className="font-medium">{charCount}</span>
-                        <span className="hidden sm:inline">characters,</span>
-                        <span className="sm:hidden">characters,</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <span className="font-medium">and ~{Math.ceil(wordCount / 200)}</span>
-                        <span className="hidden sm:inline">min read.</span>
-                        <span className="sm:hidden">min. read.</span>
-                      </div>
-                    </div>
-                  </div>
+                <div className="relative group">
+                  <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-xl opacity-0 group-focus-within:opacity-100 transition-opacity" />
                   <textarea
                     value={form.content}
                     onChange={handleContentChange}
+                    dir={textDirection}
+                    style={{
+                      textAlign: textDirection === "rtl" ? "right" : "left",
+                    }}
                     rows={10}
-                    className="w-full px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-700 
-                             dark:bg-gray-700/50 focus:ring-2 focus:ring-purple-500 focus:border-transparent
-                             transition-all placeholder-gray-400 dark:placeholder-gray-500 resize-y
-                             font-mono text-sm leading-relaxed"
+                    className="w-full px-4 py-3 rounded-xl bg-white/50 dark:bg-gray-700/30 backdrop-blur-sm border border-gray-200/30 dark:border-gray-700/50 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all placeholder-gray-400 dark:placeholder-gray-500 resize-y font-mono text-sm leading-relaxed shadow-sm group-hover:shadow-md"
                     placeholder="Paste or type your content here..."
                     required
                     minLength={50}
                   />
-                  <div className="mt-2 flex justify-between items-center">
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      Tip: Start with texts between 300-500 words for optimal learning.
-                    </p>
-                    <div className="text-sm text-gray-500 dark:text-gray-400">
-                      {((wordCount / 1000) * 100).toFixed(1)}% of 1000 words goal.
-                    </div>
+                </div>
+
+                <div className="flex justify-between items-center text-sm text-gray-500 dark:text-gray-400">
+                  <p>Tip: Start with 300-500 words for optimal learning</p>
+                  <div className="flex items-center gap-2">
+                    <span className="text-purple-600 dark:text-purple-400 font-medium">
+                      {((wordCount / 1000) * 100).toFixed(1)}%
+                    </span>
+                    <span>of 1000 words goal</span>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Actions */}
+            {/* Form Actions */}
             <div className="flex justify-end gap-4">
               <button
                 type="button"
                 onClick={() => router.push("/")}
-                className="px-6 py-2.5 rounded-lg border border-gray-200 dark:border-gray-600 
-                         text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/50 
-                         transition-colors cursor-pointer"
+                className="px-6 py-2.5 rounded-xl border border-gray-200/50 dark:border-gray-700/50 text-gray-700 dark:text-gray-200 hover:bg-gray-100/30 dark:hover:bg-gray-700/30 transition-all"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                disabled={isSubmitting || !form.content.trim() || !form.title.trim()}
-                className="px-8 py-2.5 rounded-lg bg-gradient-to-r from-purple-600 to-fuchsia-600 
-                         hover:from-purple-700 hover:to-fuchsia-700 text-white font-medium 
-                         disabled:opacity-50 disabled:cursor-not-allowed relative transition-all 
-                         shadow-md hover:shadow-lg cursor-pointer"
+                disabled={
+                  isSubmitting || !form.content.trim() || !form.title.trim()
+                }
+                className="relative px-8 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden transition-all shadow-lg hover:shadow-xl"
               >
-                {isSubmitting ? (
-                  <>
-                    <span className="invisible">Creating Text...</span>
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    </div>
-                  </>
-                ) : (
-                  "Create Text"
+                <span
+                  className={`relative z-10 ${
+                    isSubmitting ? "opacity-0" : "opacity-100"
+                  }`}
+                >
+                  Create Text
+                </span>
+                {isSubmitting && (
+                  <div className="absolute inset-0 flex items-center justify-center z-20">
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  </div>
                 )}
+                <div className="absolute inset-0 bg-gradient-to-r from-purple-600/20 to-pink-600/20 opacity-0 hover:opacity-100 transition-opacity" />
               </button>
             </div>
           </form>
