@@ -149,17 +149,18 @@ export default function SettingsPage() {
 
   const resetDatabase = async () => {
     if (
-      confirm("Are you sure you want to reset all data? This cannot be undone!")
+      confirm("Are you sure you want to reset all data? This cannot be undone!") &&
+      confirm("This will permanently delete your progress. Continue?")
     ) {
       try {
-        await Promise.all([
-          db.settings.clear(),
-          db.languages.clear(),
-          db.articles.clear(),
-          db.words.clear(),
-          db.phrases.clear(),
-        ]);
-        window.location.reload();
+        await db.close();
+        await db.delete();
+        await db.open();
+        await db.seed();
+        await setTimeout(() => {
+          window.location.reload();
+        }, 1000);
+        toast.success("Database reseted");
       } catch (error) {
         toast.error("Failed to reset database");
         console.error("Reset error:", error);

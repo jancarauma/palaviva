@@ -20,27 +20,29 @@ export default function ArticleListView({
         <div className="mb-12 text-center relative">
           {/* Animated background elements */}
           <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-96 h-96 bg-purple-100/50 dark:bg-purple-900/20 rounded-full blur-3xl opacity-40 animate-float" />
-          
+
           <div className="relative space-y-4">
             <h1 className="text-5xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-400 dark:to-pink-400 bg-clip-text text-transparent mb-4">
               {targetLanguageName ? (
                 <>
-                  Explore <span className="italic">{targetLanguageName}</span> Texts
+                  Explore <span className="italic">{targetLanguageName}</span>{" "}
+                  Texts
                 </>
               ) : (
                 "Your Language Library"
               )}
             </h1>
-            
+
             <p className="text-lg text-gray-600 dark:text-gray-300 max-w-3xl mx-auto leading-relaxed">
-              Immerse yourself in curated content. Search, organize, and analyze your{" "}
+              Immerse yourself in curated content. Search, organize, and analyze
+              your{" "}
               <span className="font-medium text-purple-600 dark:text-purple-400">
                 {targetLanguageName.toLowerCase() || "target language"}
               </span>{" "}
               learning materials.
             </p>
 
-            {/* Enhanced Search Bar */}
+            {/* Search Bar */}
             <div className="relative max-w-2xl mx-auto mt-8">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                 <svg
@@ -68,6 +70,7 @@ export default function ArticleListView({
           </div>
         </div>
 
+        {/* List of Articles */}
         {articles.length === 0 ? (
           <div className="text-center py-12 rounded-2xl bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm border border-gray-100/50 dark:border-gray-700/30 shadow-sm">
             <div className="inline-flex flex-col items-center justify-center mb-6">

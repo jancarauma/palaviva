@@ -77,7 +77,7 @@ Empty and dark shall I raise my lantern,
 And the guardian of the night shall fill it with oil and he shall light it also.
 
 These things he said in words. But much in his heart remained unsaid. For he himself could not speak his deeper secret.`;
-class LanguageAppDB extends Dexie {
+export class LanguageAppDB extends Dexie {
   words!: Dexie.Table<IWord, number>;
   phrases!: Dexie.Table<IPhrase, number>;
   articles!: Dexie.Table<IArticle, number>;

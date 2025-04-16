@@ -11,7 +11,7 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
   totalPages,
   onChange,
 }) => (
-  <div className={"bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm"}>
+  <div className=" flex items-center justify-between gap-4 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
     <button
       onClick={() => onChange("prev")}
       disabled={currentPage === 0}

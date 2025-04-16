@@ -418,7 +418,7 @@ export default function ArticleView({ id }: { id: string }) {
               </Link>
             </div>
 
-            <div className="flex flex-col sm:flex-row items-center gap-4 w-full md:w-auto">
+            <div className="flex flex-col sm:flex-row items-center w-full md:w-auto">
               <div className="flex items-center gap-4 bg-gray-50/50 dark:bg-gray-700/50 px-4 py-2 rounded-xl backdrop-blur-sm">
                 <LearningProgress known={knownWords} total={totalWords} />
                 <PlaybackControls
@@ -518,10 +518,10 @@ export default function ArticleView({ id }: { id: string }) {
           </motion.div>
 
           {/* Translation Sidebar */}
-          <ModalOverlay
+          {/*<ModalOverlay
             isVisible={!!selectedWord && isMobile}
             onClose={() => setSelectedWord(null)}
-          />
+          />*/}
           <AnimatePresence>
             {selectedWord && (
               <>
