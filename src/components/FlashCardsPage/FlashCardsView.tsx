@@ -162,22 +162,22 @@ export default function FlashcardsView({ id }: { id: string }) {
 
   const playSound = (text: string) => {
     if (!article || !synthesisRef.current) return;
-  
+
     const langKey = article.language.split("-")[0] || "en";
     const targetLang = LANG_MAP[langKey] || article.language;
     const voices = synthesisRef.current.getVoices();
-    const preferredVoice = voices.find(v => v.lang.startsWith(targetLang));
-  
+    const preferredVoice = voices.find((v) => v.lang.startsWith(targetLang));
+
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = targetLang;
-    
+
     if (preferredVoice) {
       utterance.voice = preferredVoice;
     }
-  
+
     utterance.rate = langKey === "en" ? 0.89 : 0.9;
     utterance.pitch = langKey === "en" ? 1.19 : 1.2;
-  
+
     synthesisRef.current.cancel();
     synthesisRef.current.speak(utterance);
   };
@@ -205,7 +205,7 @@ export default function FlashcardsView({ id }: { id: string }) {
           </div>)*/}
         </div>
 
-        <div className="flex justify-between mb-6">
+        {(currentCard + 1 < flashcards.length) && <div className="flex justify-between mb-6">
           <button
             onClick={() => {
               setCurrentCard((prev) => Math.max(0, prev - 1));
@@ -226,14 +226,14 @@ export default function FlashcardsView({ id }: { id: string }) {
               setShowAnswer(false);
               setSelectedOption(null);
             }}
-            disabled={currentCard + 1 === flashcards.length - 1}
+            disabled={(currentCard + 1 === flashcards.length - 1)}
             className="px-4 py-2 bg-blue-100 dark:bg-blue-800 text-blue-600 dark:text-blue-300 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Next Card
           </button>
-        </div>
+        </div>}
 
-        {(currentCard + 1) < flashcards.length ? (
+        {currentCard + 1 < flashcards.length ? (
           <motion.div
             key={currentCard}
             initial={{ scale: 0.95, opacity: 0 }}
@@ -247,7 +247,9 @@ export default function FlashcardsView({ id }: { id: string }) {
                 <div
                   className="bg-blue-600 h-2.5 rounded-full transition-all duration-500"
                   style={{
-                    width: `${((currentCard + 1) / (flashcards.length - 1)) * 100}%`,
+                    width: `${
+                      ((currentCard + 1) / (flashcards.length - 1)) * 100
+                    }%`,
                   }}
                 />
               </div>
@@ -339,7 +341,7 @@ export default function FlashcardsView({ id }: { id: string }) {
             </div>
           </motion.div>
         ) : (
-            <motion.div
+          <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
@@ -349,7 +351,7 @@ export default function FlashcardsView({ id }: { id: string }) {
             <motion.div
               initial={{ scale: 0, rotate: -30 }}
               animate={{ scale: 1, rotate: 0 }}
-              transition={{ type: 'spring', stiffness: 150 }}
+              transition={{ type: "spring", stiffness: 150 }}
               className="mx-auto mb-6"
             >
               <div className="relative inline-block">
@@ -372,7 +374,7 @@ export default function FlashcardsView({ id }: { id: string }) {
                 </div>
               </div>
             </motion.div>
-      
+
             {/* Content */}
             <motion.div
               initial={{ y: 10 }}
@@ -380,9 +382,9 @@ export default function FlashcardsView({ id }: { id: string }) {
               className="space-y-6"
             >
               <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-500 bg-clip-text text-transparent dark:from-blue-400 dark:to-purple-300">
-                Mastery Achieved!
+                Well Done!
               </h2>
-              
+
               <div className="flex items-center justify-center space-x-4">
                 <div className="relative">
                   <CircularProgress
@@ -397,11 +399,11 @@ export default function FlashcardsView({ id }: { id: string }) {
                   </div>
                 </div>
               </div>
-      
+
               <p className="text-xl font-medium text-gray-600 dark:text-gray-300">
                 {score} out of {flashcards.length} correct answers
               </p>
-      
+
               <div className="flex flex-col sm:flex-row justify-center gap-4 pt-6">
                 <motion.button
                   whileHover={{ scale: 1.05 }}
@@ -414,8 +416,11 @@ export default function FlashcardsView({ id }: { id: string }) {
                 >
                   Retry Challenge
                 </motion.button>
-                
-                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+
+                <motion.div
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
                   <Link
                     href={`/article/${id}`}
                     className="inline-block px-8 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
@@ -425,31 +430,36 @@ export default function FlashcardsView({ id }: { id: string }) {
                 </motion.div>
               </div>
             </motion.div>
-      
+
             {/* Floating Confetti Animation */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="absolute inset-0 pointer-events-none"
+              className="absolute inset-0 pointer-events-none overflow-hidden"
             >
-              {[...Array(12)].map((_, i) => (
+              {[...Array(24)].map((_, i) => (
                 <motion.div
                   key={i}
-                  className="absolute w-2 h-2 bg-yellow-400 rounded-full"
+                  className="absolute w-3 h-3 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full shadow-sm"
                   initial={{
                     scale: 0,
-                    x: Math.random() * 100 - 50 + '%',
-                    y: Math.random() * 100 - 50 + '%'
+                    x: `${Math.random() * 100}%`,
+                    y: `${Math.random() * 100}%`,
                   }}
                   animate={{
                     scale: [0, 1, 0],
-                    opacity: [0, 1, 0],
-                    rotate: Math.random() * 360
+                    opacity: [0, 1, 0.5, 0],
+                    rotate: [0, 360],
                   }}
                   transition={{
-                    duration: 1.5,
+                    duration: 2.5,
                     delay: i * 0.1,
-                    repeat: Infinity
+                    repeat: Infinity,
+                    ease: "anticipate",
+                  }}
+                  style={{
+                    top: `${Math.random() * 20}%`,
+                    left: `${Math.random() * 100}%`,
                   }}
                 />
               ))}
