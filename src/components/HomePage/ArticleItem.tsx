@@ -39,13 +39,18 @@ export default function ArticleItem({
     <div className="relative group">
       {/* Hover effect background */}
       <div className="absolute inset-0 bg-gradient-to-r from-purple-500/5 to-pink-500/5 dark:from-purple-400/5 dark:to-pink-400/5 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-      
+
       <div className="relative h-full bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl shadow-sm border border-gray-200/30 dark:border-gray-700/30 hover:border-purple-200/50 dark:hover:border-purple-400/20 hover:shadow-lg transition-all duration-300 ease-out">
         {/* Progress indicator (TODO) */}
         <div className="absolute top-0 left-0 w-full h-1 bg-gray-100 dark:bg-gray-700/50 rounded-t-xl">
-          <div 
-            className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-t-xl transition-all duration-500" 
-            style={{ width: `${Math.min((article.word_count || 0) / (article.word_count || 1) * 100, 100)}%` }}
+          <div
+            className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-t-xl transition-all duration-500"
+            style={{
+              width: `${Math.min(
+                ((article.word_count || 0) / (article.word_count || 1)) * 100,
+                100
+              )}%`,
+            }}
           />
         </div>
 
@@ -87,31 +92,34 @@ export default function ArticleItem({
             {/* Action Bar */}
             <div className="flex justify-between items-center border-t border-gray-100/50 dark:border-gray-700/30 pt-4">
               <div className="flex items-center space-x-2">
-                {/* Level indication (TODO) */}
-                <span className="px-2 py-1 text-xs font-medium bg-purple-100/50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-300 rounded-full">
-                  {/*article.difficulty || 'Intermediate'*/}
-                  {'Intermediate'}
-                </span>
-              </div>
-              
-              <div className="flex items-center space-x-2">
                 <button
                   onClick={handleDelete}
                   onBlur={() => setConfirmDelete(false)}
-                  className={`relative flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg transition-all
+                  className={`relative flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg transition-all cursor-pointer
                     ${
                       confirmDelete
                         ? "bg-red-100/80 text-red-600 hover:bg-red-200/80 dark:bg-red-800/50 dark:text-red-200 animate-shake"
                         : "text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-50/50 dark:hover:bg-red-900/30"
                     }`}
-                  aria-label={confirmDelete ? "Confirm deletion" : "Delete article"}
+                  aria-label={
+                    confirmDelete ? "Confirm deletion" : "Delete article"
+                  }
                 >
                   {confirmDelete ? (
                     <AlertTriangle className="w-4 h-4" />
                   ) : (
                     <Trash2 className="w-4 h-4" />
                   )}
+                  {confirmDelete && <p>Remove</p>}
                 </button>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                {/* Level indication (TODO) */}
+                <span className="px-2 py-1 text-xs font-medium bg-purple-100/50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-300 rounded-full">
+                  {/*article.difficulty || 'Intermediate'*/}
+                  {"Intermediate"}
+                </span>
                 <ChevronRight className="w-5 h-5 text-gray-400 dark:text-gray-500 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors" />
               </div>
             </div>
