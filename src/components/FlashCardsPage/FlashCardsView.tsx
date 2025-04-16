@@ -175,8 +175,8 @@ export default function FlashcardsView({ id }: { id: string }) {
       utterance.voice = preferredVoice;
     }
 
-    utterance.rate = langKey === "en" ? 0.89 : 0.9;
-    utterance.pitch = langKey === "en" ? 1.19 : 1.2;
+    utterance.rate = langKey === "en" ? 1.0 : 0.95;
+    utterance.pitch = langKey === "en" ? 1.0 : 1.05;
 
     synthesisRef.current.cancel();
     synthesisRef.current.speak(utterance);
@@ -193,45 +193,49 @@ export default function FlashcardsView({ id }: { id: string }) {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
       <div className="max-w-3xl mx-auto">
         <div className="flex justify-between items-center mb-8">
-          <Link
-            href={`/article/${id}`}
-            className="flex items-center text-blue-600 dark:text-blue-400 hover:text-blue-700"
-          >
-            <ChevronLeftIcon className="w-5 h-5 mr-2" />
-            Back to Article
-          </Link>
+          <motion.div whileHover={{ x: -2 }}>
+            <Link
+              href={`/article/${id}`}
+              className="inline-flex items-center text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-500 transition-colors"
+            >
+              <ChevronLeftIcon className="w-5 h-5 mr-2" />
+              Back to Texts
+            </Link>
+          </motion.div>
           {/*((currentCard + 1) < flashcards.length) && (<div className="text-lg font-semibold text-purple-500">
             Score: {score} of {flashcards.length - 1}
           </div>)*/}
         </div>
 
-        {(currentCard + 1 < flashcards.length) && <div className="flex justify-between mb-6">
-          <button
-            onClick={() => {
-              setCurrentCard((prev) => Math.max(0, prev - 1));
-              setShowAnswer(false);
-              setSelectedOption(null);
-            }}
-            disabled={currentCard === 0}
-            className="px-4 py-2 bg-blue-100 dark:bg-blue-800 text-blue-600 dark:text-blue-300 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Previous Card
-          </button>
+        {currentCard + 1 < flashcards.length && (
+          <div className="flex justify-between mb-6">
+            <button
+              onClick={() => {
+                setCurrentCard((prev) => Math.max(0, prev - 1));
+                setShowAnswer(false);
+                setSelectedOption(null);
+              }}
+              disabled={currentCard === 0}
+              className="px-4 py-2 bg-blue-100 dark:bg-blue-800 text-blue-600 dark:text-blue-300 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Previous Card
+            </button>
 
-          <button
-            onClick={() => {
-              setCurrentCard((prev) =>
-                Math.min(flashcards.length - 1, prev + 1)
-              );
-              setShowAnswer(false);
-              setSelectedOption(null);
-            }}
-            disabled={(currentCard + 1 === flashcards.length - 1)}
-            className="px-4 py-2 bg-blue-100 dark:bg-blue-800 text-blue-600 dark:text-blue-300 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Next Card
-          </button>
-        </div>}
+            <button
+              onClick={() => {
+                setCurrentCard((prev) =>
+                  Math.min(flashcards.length - 1, prev + 1)
+                );
+                setShowAnswer(false);
+                setSelectedOption(null);
+              }}
+              disabled={currentCard + 1 === flashcards.length - 1}
+              className="px-4 py-2 bg-blue-100 dark:bg-blue-800 text-blue-600 dark:text-blue-300 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Next Card
+            </button>
+          </div>
+        )}
 
         {currentCard + 1 < flashcards.length ? (
           <motion.div
@@ -412,7 +416,7 @@ export default function FlashcardsView({ id }: { id: string }) {
                     setCurrentCard(0);
                     setScore(0);
                   }}
-                  className="px-8 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl shadow-lg hover:shadow-xl transition-all"
+                  className="px-8 py-3 cursor-pointer bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl shadow-lg hover:shadow-xl transition-all"
                 >
                   Retry Challenge
                 </motion.button>
@@ -423,7 +427,7 @@ export default function FlashcardsView({ id }: { id: string }) {
                 >
                   <Link
                     href={`/article/${id}`}
-                    className="inline-block px-8 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                    className="inline-block px-8 py-3 cursor-pointer bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                   >
                     Return to Article
                   </Link>

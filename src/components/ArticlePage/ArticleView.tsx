@@ -360,8 +360,8 @@ export default function ArticleView({ id }: { id: string }) {
     const utt = new SpeechSynthesisUtterance(selectedWord.name);
     if (preferred) utt.voice = preferred;
     utt.lang = targetLang;
-    utt.rate = langKey === "en" ? 0.89 : 0.9;
-    utt.pitch = langKey === "en" ? 1.19 : 1.2;
+    utt.rate = langKey === "en" ? 1.0 : 0.95;
+    utt.pitch = langKey === "en" ? 1.0 : 1.05;
     speechSynthesisRef.current.cancel();
     speechSynthesisRef.current.speak(utt);
   };
