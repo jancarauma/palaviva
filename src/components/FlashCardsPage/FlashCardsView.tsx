@@ -162,10 +162,23 @@ export default function FlashcardsView({ id }: { id: string }) {
 
   const playSound = (text: string) => {
     if (!article || !synthesisRef.current) return;
-
-    const utterance = new SpeechSynthesisUtterance(text);
+  
     const langKey = article.language.split("-")[0] || "en";
-    utterance.lang = LANG_MAP[langKey] || article.language;
+    const targetLang = LANG_MAP[langKey] || article.language;
+    const voices = synthesisRef.current.getVoices();
+    const preferredVoice = voices.find(v => v.lang.startsWith(targetLang));
+  
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = targetLang;
+    
+    if (preferredVoice) {
+      utterance.voice = preferredVoice;
+    }
+  
+    utterance.rate = langKey === "en" ? 0.89 : 0.9;
+    utterance.pitch = langKey === "en" ? 1.19 : 1.2;
+  
+    synthesisRef.current.cancel();
     synthesisRef.current.speak(utterance);
   };
 
