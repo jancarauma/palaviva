@@ -30,7 +30,7 @@ export default function WordsPage() {
   const [targetLanguageName, setTargetLanguageName] = useState("");
   const [words, setWords] = useState<IWord[]>([]);
   const [loading, setLoading] = useState(true);
-  const [sortConfig, setSortConfig] = useState<{
+  const [sortConfig/*, setSortConfig*/] = useState<{
     key: keyof IWord;
     direction: "asc" | "desc";
   }>({ key: "count", direction: "desc" });
@@ -459,7 +459,7 @@ export default function WordsPage() {
                     dataKey="month"
                     tick={{ fill: "#6B7280" }}
                     tickFormatter={(value, index) =>
-                      `${value} '${timelineData[index].year
+                      `${value} &apos;${timelineData[index].year
                         .toString()
                         .slice(2)}`
                     }
