@@ -226,7 +226,7 @@ export default function FlashcardsView({ id }: { id: string }) {
               setShowAnswer(false);
               setSelectedOption(null);
             }}
-            disabled={currentCard === flashcards.length - 1}
+            disabled={currentCard + 1 === flashcards.length - 1}
             className="px-4 py-2 bg-blue-100 dark:bg-blue-800 text-blue-600 dark:text-blue-300 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Next Card
