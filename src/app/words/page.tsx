@@ -30,7 +30,7 @@ export default function WordsPage() {
   const [targetLanguageName, setTargetLanguageName] = useState("");
   const [words, setWords] = useState<IWord[]>([]);
   const [loading, setLoading] = useState(true);
-  const [sortConfig/*, setSortConfig*/] = useState<{
+  const [sortConfig /*, setSortConfig*/] = useState<{
     key: keyof IWord;
     direction: "asc" | "desc";
   }>({ key: "count", direction: "desc" });
@@ -428,13 +428,13 @@ export default function WordsPage() {
                     <div
                       className="w-3 h-3 rounded-full animate-pulse"
                       style={{
-                        backgroundColor: stat.level.hoverColor ? stat.level.hoverColor : "#e5e7eb",
-                        boxShadow: `0 0 12px ${stat.level.hoverColor ? stat.level.hoverColor : "#e5e7eb"}80`,
+                        backgroundColor: stat.level.hoverColor,
+                        boxShadow: `0 0 12px ${stat.level.hoverColor}80`,
                       }}
                     ></div>
                     <span
                       className="text-sm"
-                      style={{ color: stat.level.hoverColor ? stat.level.hoverColor : "#e5e7eb" }}
+                      style={{ color: stat.level.hoverColor }}
                     >
                       {stat.level.name}
                     </span>
@@ -459,9 +459,7 @@ export default function WordsPage() {
                     dataKey="month"
                     tick={{ fill: "#6B7280" }}
                     tickFormatter={(value, index) =>
-                      `${value} &apos;${timelineData[index].year
-                        .toString()
-                        .slice(2)}`
+                      `${value} ${timelineData[index].year.toString().slice(2)}`
                     }
                   />
                   <YAxis tick={{ fill: "#6B7280" }} />
@@ -474,15 +472,17 @@ export default function WordsPage() {
                       boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
                     }}
                   />
-                  {COMFORT_LEVELS.map(({ level, hoverColor }) => (
-                    <Bar
-                      key={level}
-                      dataKey={`level_${level}`}
-                      stackId="a"
-                      fill={hoverColor ? hoverColor : "#e5e7eb"}
-                      radius={[4, 4, 0, 0]}
-                    />
-                  ))}
+                  {COMFORT_LEVELS.map(({ level, hoverColor }) => {
+                    return (
+                      <Bar
+                        key={level}
+                        dataKey={`level_${level}`}
+                        stackId="a"
+                        fill={hoverColor}
+                        radius={[4, 4, 0, 0]}
+                      />
+                    );
+                  })}
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -507,7 +507,7 @@ export default function WordsPage() {
                     {comfortData.map((_, index) => (
                       <Cell
                         key={`cell-${index}`}
-                        fill={COMFORT_LEVELS[index].hoverColor ? COMFORT_LEVELS[index].hoverColor : "#e5e7eb"}
+                        fill={COMFORT_LEVELS[index].hoverColor}
                         className="hover:drop-shadow-xl transition-all"
                       />
                     ))}
@@ -616,7 +616,10 @@ export default function WordsPage() {
                         <div
                           className="relative w-8 h-8 flex items-center justify-center"
                           style={{
-                            color: COMFORT_LEVELS[word.comfort - 1].hoverColor ? COMFORT_LEVELS[word.comfort - 1].hoverColor : "#e5e7eb",
+                            color:
+                              COMFORT_LEVELS[
+                                word.comfort ? word.comfort - 1 : 0
+                              ].hoverColor,
                           }}
                         >
                           <svg className="absolute inset-0" viewBox="0 0 32 32">
@@ -630,7 +633,7 @@ export default function WordsPage() {
                             />
                           </svg>
                           <span className="text-sm font-medium">
-                            {word.comfort}
+                            {word.comfort === 0 ? "1" : word.comfort}
                           </span>
                         </div>
                         <select
