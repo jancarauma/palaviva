@@ -82,13 +82,13 @@ export default function WordsPage() {
     loadWords();
   }, []);
 
-  function safeStat(value: number, formatter?: (n: number) => string) {
+  /*function safeStat(value: number, formatter?: (n: number) => string) {
     return isNaN(value) || !isFinite(value)
       ? "-"
       : formatter
       ? formatter(value)
       : value;
-  }
+  }*/
 
   const timelineData = Array.from({ length: 12 }, (_, i) => {
     const currentDate = new Date();
@@ -323,12 +323,12 @@ export default function WordsPage() {
     },
   ];
 
-  const handleSort = useCallback((key: keyof IWord) => {
+  /*const handleSort = useCallback((key: keyof IWord) => {
     setSortConfig((prev) => ({
       key,
       direction: prev.key === key && prev.direction === "asc" ? "desc" : "asc",
     }));
-  }, []);
+  }, []);*/
 
   const updateComfort = useCallback(
     async (wordId: number, newComfort: number) => {
@@ -756,7 +756,7 @@ export default function WordsPage() {
   );
 }
 
-const SortIndicator = ({
+/*const SortIndicator = ({
   isActive,
   direction,
 }: {
@@ -767,9 +767,7 @@ const SortIndicator = ({
     {!isActive && "↕"}
     {isActive && (direction === "asc" ? "↑" : "↓")}
   </span>
-);
-
-// Sub-components for better organization
+);*/
 
 const LoadingSkeleton = () => (
   <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
