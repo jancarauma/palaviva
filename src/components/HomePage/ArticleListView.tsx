@@ -91,7 +91,7 @@ export default function ArticleListView({
               </h3>
               <p className="mb-8 text-gray-600 dark:text-gray-300 max-w-md mx-auto leading-relaxed">
                 Begin your language journey by adding your first text content.
-                We'll help you analyze and learn from it effectively.
+                We&apos;ll help you analyze and learn from it effectively.
               </p>
               <button
                 onClick={() => (window.location.href = "/create")}
