@@ -34,7 +34,7 @@ It allows users to import or load articles and any text content for study, class
 - **Tailwind CSS** for utility-first styling  
 - **Dexie.js** for IndexedDB data management  
 - **Web Speech API** for text-to-speech functionality  
-- Clean, modular architecture for extensibility
+- Clean, modular architecture for extensibility.
 
 ## Installation
 
